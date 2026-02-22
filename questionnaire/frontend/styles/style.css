@@ -1,0 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins"б sans-serif;
+}
+
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #000;
+}
+
+.wrapper{
+    width: 500px;
+    background-color: rgb(16, 111, 244);
+    border-radius: 20px;
+    color: #fff;
+    padding: 50px 50px;
+}
+
+.wrapper .h1{
+    font-weight: 700;
+    font-size: 36px;
+    text-align: center;
+}
+
+.wrapper .input-box{
+    width: 100%;
+    height: 50px;
+    margin: 30px 0;
+    position: relative;
+}
+
+.input-box input{
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    border: 2px solid rgb(47, 47, 47);
+    border-radius: 15px;
+    font-size: 16px;
+    padding: 20px 45px 20px 20px;
+}
+
+.input-box input::placeholder{
+    color: #fff;
+}
+
+.input-box i{
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+}
+
+.remember label input{
+    accent-color: #fff;
+    margin-right: 3px;
+}
+
+.remember a{
+    color: #fff;
+    text-decoration: none;
+}
+
+.remember a:hover{
+    color: blue;
+    text-decoration: underline;
+}
+
+.wrapper .btn{
+    width: 100%;
+    height: 50px;
+    color: #fff;
+    background: #d26906;
+    border: none;
+    outline: none;
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+.wrapper .register-account{
+    font-size: 16px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.register-account p a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.register-account p a:hover{
+    text-decoration: underline;
+    color: rgb(3, 3, 3);
+}
