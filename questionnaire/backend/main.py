@@ -1,6 +1,12 @@
 from fastapi import FastAPI
-from app.auth.routes import routes as auth_router
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
-app.include_router(auth_router, prefix='/auth', tags=['Auth'])
+
+app.mount("/frontend", StaticFiles(directory="../frontend"), name="frontend")
+
+@app.get("/")
+def root():
+    return FileResponse("../frontend/index.html")
