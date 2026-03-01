@@ -29,3 +29,33 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     document.getElementById("result").innerText = data.message || data.detail;
 });
 
+
+
+//Вход
+document.addEventListener("DOMContentLoaded", () => {
+    const loginForm = document.getElementById("signon");
+    loginForm?.addEventListener("submit", async function(e){
+        e.preventDefault();
+        const email = document.getElementById("login_email").value;
+        const password = document.getElementById("login_password").value;
+
+        try {
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await response.json();
+
+            if(response.ok){
+                alert("Успешный вход");
+
+            } else {
+                alert(data.detail || "Ошибка входа");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Ошибка сервера");
+        }
+    });
+});

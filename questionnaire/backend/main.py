@@ -3,8 +3,9 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from pydantic import BaseModel, EmailStr
-from auth.database import database
+from app_auth.database import database
 from fastapi import HTTPException
+from app_auth.security import hash_password, verify_password
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
@@ -33,12 +34,29 @@ def register(user: User):
     if existing_user:
         raise HTTPException(status_code=400, detail="Данный пользователь уже зарегистрирован!")
     
+
+    #Хеширование пароля
+    hashed_password = hash_password(user.password)
+    
     database.users.insert_one({
         "email": user.email,
-        "password": user.password
+        "password": hashed_password
     })
     
     return {"message": "Вы успешно зарегистрировались"}
+
+#POST запрос входа
+@app.post("/login")
+def login(user: User):
+    db_user = database.users.find_one({"email": user.email})
+
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Вы ещё не зарегистрировались!")
+
+    if not verify_password(user.password, db_user["password"]):
+        raise HTTPException(status_code=400, detail="Не верный логин или парль!")
+    
+    return{"message": "Добро пожаловать!"}
 
 #Подключение базы данных
 @app.get("/connect-db")
