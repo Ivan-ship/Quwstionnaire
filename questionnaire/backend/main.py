@@ -3,10 +3,10 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from pydantic import BaseModel, EmailStr
-from app_auth.database import database
+from auth.database import database
 from fastapi import HTTPException
-from app_auth.security import hash_password, verify_password
-from app_auth.token_utils import generate_access_token
+from auth.security import hash_password, verify_password
+from auth.token_utils import generate_access_token
 from fastapi import Response
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -25,6 +25,10 @@ def root():
 @app.get("/register")
 def register_page():
     return FileResponse(FRONTEND_DIR / "register.html")
+
+@app.get("/reset")
+def reset_page():
+    return FileResponse(FRONTEND_DIR / "reset.html")
 
 class User(BaseModel):
     email: EmailStr

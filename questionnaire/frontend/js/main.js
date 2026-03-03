@@ -26,6 +26,13 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify({ email, password })
         });
 
+        if(response.ok){
+            window.location.href="/reset";
+        }else{
+            const data = await response.json();
+            alert(data.detail);
+        }
+
         const data = await response.json();
         alert(data.message || data.detail);
     });
@@ -52,6 +59,23 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             alert(data.detail);
         }
+    });
+
+    //Код подтверждения
+    const inputs = document.querySelectorAll('.code input');
+    inputs.forEach((input, index) =>{
+        input.addEventListener('input', () => {
+            input.value = input.value.replace(/\D/g, '')
+            if(input.value && index < inputs.length - 1){
+                inputs[index + 1].focus();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if(e.key === "Backspace" && !input.value && index > 0){
+                inputs[index - 1].focus();
+            }
+        })
     });
 
 });
