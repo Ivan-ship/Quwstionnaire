@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
 
         const email = document.getElementById("email").value;
+        const name = document.getElementById('FirstName').value;
+        const SecondName = document.getElementById('SecondName').value;
         const password = document.getElementById("password").value;
         const confirmPassword = document.getElementById("confirm_password").value;
 
@@ -23,18 +25,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const response = await fetch("/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ 
+                email: email,
+                password: password,
+                first_name: name,
+                last_name: SecondName
+             })
         });
+
+        const data = await response.json();
 
         if(response.ok){
             window.location.href="/reset";
         }else{
-            const data = await response.json();
             alert(data.detail);
         }
-
-        const data = await response.json();
-        alert(data.message || data.detail);
     });
 
     // Логин
