@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json();
 
         if(response.ok){
+            localStorage.setItem("confirm_email", email);
             window.location.href="/reset";
         }else{
             alert(data.detail);
@@ -82,5 +83,42 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         })
     });
+
+    //Код подтверждения
+    const confirmBtn = document.querySelector(".code-btn");
+    confirmBtn?.addEventListener("click", async () => {
+
+    const inputs = document.querySelectorAll(".code input");
+
+    let activation_code = "";
+
+    inputs.forEach(input => {
+        activation_code += input.value;
+    });
+
+    const email = localStorage.getItem("confirm_email");
+
+    const response = await fetch("/confirm", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            activation_code: activation_code
+        })
+    });
+
+    const data = await response.json();
+
+    if(response.ok){
+        alert("Регистрация завершена");
+        window.location.href="/";
+    }else{
+        alert(data.detail);
+    }
+
+});
+
 
 });
