@@ -9,6 +9,7 @@ from app_auth.security import hash_password, verify_password
 from app_auth.token_utils import generate_access_token
 from fastapi import Response
 from app_auth.activation_code import generate_activation_code
+from app_auth.send_mail import send_email
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
@@ -63,8 +64,9 @@ def register(user: RegisterUser, response: Response):
         "last_name": user.last_name,
         "activation_code": activation_code
     })
-    
-    return {"message": "Введите код активации"}
+
+    #Отправка кода
+    send_email(user.email, activation_code)
 
 
 
