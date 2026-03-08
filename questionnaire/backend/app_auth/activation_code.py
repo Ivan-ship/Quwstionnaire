@@ -6,4 +6,3 @@ def generate_activation_code(length = 6):
 
 
 activation_code = generate_activation_code()
-print(f"Ваш код активации: {activation_code}")

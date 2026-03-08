@@ -3,12 +3,12 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from pydantic import BaseModel, EmailStr
-from auth.database import database
+from app_auth.database import database
 from fastapi import HTTPException
-from auth.security import hash_password, verify_password
-from auth.token_utils import generate_access_token
+from app_auth.security import hash_password, verify_password
+from app_auth.token_utils import generate_access_token
 from fastapi import Response
-from auth.activation_code import generate_activation_code
+from app_auth.activation_code import generate_activation_code
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
@@ -120,7 +120,7 @@ def login(user: LoginUser, response: Response):
         raise HTTPException(status_code=400, detail="Не верный логин или парль!")
     
 
-    #Выдвча токена после регистрации
+    #Выдача токена после регистрации
     token = generate_access_token(user.email, username = user.email.split("@")[0])
     
     #Сохранение токена в файл cookie
