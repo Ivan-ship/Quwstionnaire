@@ -10,6 +10,7 @@ class RegisterUser(BaseModel):
 class LoginUser(BaseModel):
     email: EmailStr
     password: str
+    remember_me: bool | None = False
     
     
 class Confirm(BaseModel):

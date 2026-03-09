@@ -85,12 +85,18 @@ def login(user: LoginUser, response: Response):
     #Выдача токена после регистрации
     token = generate_access_token(user.email, username = user.email.split("@")[0])
     
+    #зАПОМНИТЬ ПОЛЬЗОВАТЕЛЯ 
+    if user.remember_me:
+        max_age = 60 * 60 * 24 * 30
+    else:
+        max_age = 30 * 60
+
     #Сохранение токена в файл cookie
     response.set_cookie(
         key="access_token",
         value = token,
         httponly = True,
-        max_age = 30 * 60,
+        max_age = max_age,
         samesite = "lax"
     )
 
