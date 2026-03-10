@@ -19,3 +19,7 @@ def register_page():
 @router.get("/reset")
 def reset_page():
     return FileResponse(FRONTEND_DIR / "reset.html")
+
+@router.get("/password")
+def password_reset():
+    return FileResponse(FRONTEND_DIR / "password.html")
