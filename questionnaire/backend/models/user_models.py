@@ -16,3 +16,9 @@ class LoginUser(BaseModel):
 class Confirm(BaseModel):
     email: EmailStr
     activation_code: str
+
+class Reset(BaseModel):
+    email: EmailStr
+    password: str
+    confirm_password: str
+    activation_code: str
