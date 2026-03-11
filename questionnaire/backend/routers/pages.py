@@ -20,6 +20,6 @@ def register_page():
 def reset_page():
     return FileResponse(FRONTEND_DIR / "reset.html")
 
-@router.get("/password")
+@router.get("/email")
 def password_reset():
-    return FileResponse(FRONTEND_DIR / "password.html")
+    return FileResponse(FRONTEND_DIR / "email.html")
