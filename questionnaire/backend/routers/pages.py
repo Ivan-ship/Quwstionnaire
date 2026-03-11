@@ -21,5 +21,9 @@ def reset_page():
     return FileResponse(FRONTEND_DIR / "reset.html")
 
 @router.get("/email")
-def password_reset():
+def confirm_email():
     return FileResponse(FRONTEND_DIR / "email.html")
+
+@router.get("/password")
+def password_reset():
+    return FileResponse(FRONTEND_DIR / "password.html")

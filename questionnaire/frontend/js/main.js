@@ -120,5 +120,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+    //Сброс пароля
+    const form = document.getElementById("emailForm");
+    form.addEventListener("submit", async function(e){
+    e.preventDefault();
+    const email = document.getElementById("login_email").value;
+    
+    if(!email.includes("@")){
+        alert("Email должен содержать @");
+        return;
+    }
+
+    try {
+        const response = await fetch("/reset", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if(response.ok){
+            alert("Код для сброса пароля отправлен на email");
+            localStorage.setItem("reset_email", email);
+            window.location.href = "/reset";
+        } else {
+            alert(data.detail);
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Ошибка при отправке запроса");
+    }
+});
+
+    document.getElementById("passwordForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const password = document.getElementById("password").value;
+    const confirm_password = document.getElementById("confirm_password").value;
+    const email = localStorage.getItem("reset_email");
+
+    if(password !== confirm_password){
+        return alert("Пароли не совпадают");
+    }
+
+    const response = await fetch("/reset/password", {  // новый endpoint
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, new_password })
+    });
+
+    const data = await response.json();
+
+    if(response.ok){
+        alert("Пароль успешно изменён!");
+    } else {
+        alert(data.detail);
+    }
+});
 
 });

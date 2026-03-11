@@ -1,5 +1,5 @@
 from fastapi import HTTPException, Response, APIRouter
-from models.user_models import RegisterUser, LoginUser, Confirm
+from models.user_models import RegisterUser, LoginUser, Confirm, Reset
 from utils.security import hash_password, verify_password
 from utils.token_utils import generate_access_token
 from utils.activation_code import generate_activation_code
@@ -104,3 +104,32 @@ def login(user: LoginUser, response: Response):
 
 
 #Сброс пароля
+@router.post("/reset")
+def reset_password(user: Reset):
+    register_user = database.users.find_one({"email": user.email})
+    
+    if not register_user:
+        raise HTTPException(status_code = 400, detail = "Пользователя не существует.")
+    
+    reset_code = generate_activation_code()
+    
+    #Верменная бд для хранения логина и кода активации
+    database.password_reset.insert_one({"email": user.email, "code": reset_code})
+    send_email(user.email, reset_code)
+    
+
+#Подтверждение нового пароля
+@router.post("reset//confirm")
+def confirm_reset_password(email: str, code: str, new_password: str):
+    reset = database.password_reset.find_one({"email": email})
+    
+    if not reset:
+        raise HTTPException(status_code=400, detail="Запрос не найден!")
+    if reset["code"] != code:
+        raise HTTPException(status_code=400, detail="Неверный код!")
+    
+    database.users.update_one({"email": email}, {"$set":{"password": hash_password(new_password)}})
+    
+    database.password_reset.delete_one({"email": email})
+    
+    return{"message": "Пароль успешно изменен!"}
