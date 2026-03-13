@@ -96,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
         activation_code += input.value;
     });
 
+
     const email = localStorage.getItem("confirm_email");
 
     const response = await fetch("/confirm", {
@@ -122,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //Сброс пароля
     const form = document.getElementById("emailForm");
-    form.addEventListener("submit", async function(e){
+    form?.addEventListener("submit", async function(e){
     e.preventDefault();
     const email = document.getElementById("login_email").value;
     
@@ -154,7 +155,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-    document.getElementById("passwordForm").addEventListener("submit", async function(e){
+
+
+document.getElementById("passwordForm")?.addEventListener("submit", async function(e){
     e.preventDefault();
 
     const password = document.getElementById("password").value;
@@ -165,16 +168,25 @@ document.addEventListener("DOMContentLoaded", () => {
         return alert("Пароли не совпадают");
     }
 
-    const response = await fetch("/reset/password", {  // новый endpoint
+    const response = await fetch("/reset/confirm", {  
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, new_password })
+        body: JSON.stringify({ 
+            email: email,
+            activation_code: localStorage.getItem("reset_code"),
+            new_password: password,
+            confirm_password: confirm_password
+        })
     });
 
     const data = await response.json();
 
     if(response.ok){
         alert("Пароль успешно изменён!");
+
+        // переход на страницу
+        window.location.href = "/password";
+
     } else {
         alert(data.detail);
     }

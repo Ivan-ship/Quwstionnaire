@@ -19,6 +19,10 @@ class Confirm(BaseModel):
 
 class Reset(BaseModel):
     email: EmailStr
-    password: str
-    confirm_password: str
+    
+class ConfirmReset(BaseModel):
+    email: EmailStr
     activation_code: str
+    new_password: str
+    confirm_password: str
+
