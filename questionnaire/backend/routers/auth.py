@@ -1,5 +1,5 @@
 from fastapi import HTTPException, Response, APIRouter
-from models.user_models import RegisterUser, LoginUser, Confirm, Reset, ConfirmReset
+from models.user_models import RegisterUser, LoginUser, Confirm, ResetRequest, ResetConfirm
 from utils.security import hash_password, verify_password
 from utils.token_utils import generate_access_token
 from utils.activation_code import generate_activation_code
@@ -29,10 +29,7 @@ def register(user: RegisterUser, response: Response):
     send_email(user.email, activation_code)
 
 
-
 #Регистрация через подтверждение кода
-
-
 @router.post("/confirm")
 def confirm(user: Confirm, response: Response):
     
@@ -107,7 +104,7 @@ def login(user: LoginUser, response: Response):
 
 #Сброс пароля
 @router.post("/reset")
-def reset_password(user: Reset):
+def reset_password(user: ResetRequest):
     register_user = database.users.find_one({"email": user.email})
     
     if not register_user:
@@ -116,27 +113,27 @@ def reset_password(user: Reset):
     reset_code = generate_activation_code()
     
     #Верменная бд для хранения логина и кода активации
-    database.password_reset.insert_one({"email": user.email, "code": reset_code})
+    database.password_reset.insert_one({
+        "email": user.email,
+        "new_password": hash_password(user.new_password),
+        "code": reset_code})
     send_email(user.email, reset_code)
     return{"message": "Код отправлен!"}
-    
-    
 
-#Подтверждение нового пароля
+
 @router.post("/reset/confirm")
-def confirm_reset_password(user: ConfirmReset):
+def confirm_reset_password(user: ResetConfirm):
+
     reset = database.password_reset.find_one({"email": user.email})
-    
+
     if not reset:
         raise HTTPException(status_code=400, detail="Запрос не найден!")
+
     if reset["code"] != user.activation_code:
-        raise HTTPException(status_code=400, detail="Неверный код!")
+        raise HTTPException(status_code=400, detail="Не верный код подтверждения!")
     
-    if user.new_password != user.confirm_password:
-        raise HTTPException(status_code = 400, detail = "Пароли не совпадают!")
-    
-    database.users.update_one({"email": user.email}, {"$set":{"password": hash_password(user.new_password)}})
-    
+    database.users.update_one({"email": user.email}, 
+    {"$set":{"password": reset["new_password"]}})
     database.password_reset.delete_one({"email": user.email})
     
     return{"message": "Пароль успешно изменен!"}

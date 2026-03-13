@@ -96,10 +96,19 @@ document.addEventListener("DOMContentLoaded", () => {
         activation_code += input.value;
     });
 
+    localStorage.setItem("reset_code", activation_code);
 
-    const email = localStorage.getItem("confirm_email");
 
-    const response = await fetch("/confirm", {
+    let email = localStorage.getItem("confirm_email");
+    let url = "/confirm";
+
+    //Для сброса
+    if(localStorage.getItem("reset_email")){
+        email = localStorage.getItem("reset_email");
+        url = "/reset/confirm";
+    }
+
+    const response = await fetch(url, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -113,83 +122,60 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = await response.json();
 
     if(response.ok){
-        alert("Регистрация завершена");
-        window.location.href="/";
-    }else{
+        if(localStorage.getItem("reset_email")){
+            alert("Пароль успешно изменён!"); // для сброса пароля
+            localStorage.removeItem("reset_email");
+            localStorage.removeItem("reset_code");
+            window.location.href = "/login"; // куда хочешь после смены
+        } else {
+            alert("Регистрация завершена!"); // для подтверждения регистрации
+            window.location.href = "/";
+        }
+}   else{
         alert(data.detail);
-    }
+}
 
 });
-
-    //Сброс пароля
-    const form = document.getElementById("emailForm");
-    form?.addEventListener("submit", async function(e){
+document.getElementById("passwordForm")?.addEventListener("submit", async function(e){
     e.preventDefault();
-    const email = document.getElementById("login_email").value;
-    
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const confirm_password = document.getElementById("confirm_password").value;
+
     if(!email.includes("@")){
         alert("Email должен содержать @");
         return;
     }
 
-    try {
+    if(password !== confirm_password){
+        alert("Пароли не совпадают");
+        return;
+    }
+
+    try{
         const response = await fetch("/reset", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email })
+            body: JSON.stringify({
+                email: email,
+                new_password: password
+            })
         });
 
         const data = await response.json();
 
         if(response.ok){
-            alert("Код для сброса пароля отправлен на email");
+            alert("Код отправлен на email");
             localStorage.setItem("reset_email", email);
-            window.location.href = "/reset";
+            window.location.href = "/reset"; 
         } else {
             alert(data.detail);
         }
 
-    } catch (err) {
+    } catch(err){
         console.error(err);
-        alert("Ошибка при отправке запроса");
+        alert("Ошибка запроса");
     }
 });
-
-
-
-document.getElementById("passwordForm")?.addEventListener("submit", async function(e){
-    e.preventDefault();
-
-    const password = document.getElementById("password").value;
-    const confirm_password = document.getElementById("confirm_password").value;
-    const email = localStorage.getItem("reset_email");
-
-    if(password !== confirm_password){
-        return alert("Пароли не совпадают");
-    }
-
-    const response = await fetch("/reset/confirm", {  
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            email: email,
-            activation_code: localStorage.getItem("reset_code"),
-            new_password: password,
-            confirm_password: confirm_password
-        })
-    });
-
-    const data = await response.json();
-
-    if(response.ok){
-        alert("Пароль успешно изменён!");
-
-        // переход на страницу
-        window.location.href = "/password";
-
-    } else {
-        alert(data.detail);
-    }
-});
-
 });

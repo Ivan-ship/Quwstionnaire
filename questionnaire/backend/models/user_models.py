@@ -17,12 +17,10 @@ class Confirm(BaseModel):
     email: EmailStr
     activation_code: str
 
-class Reset(BaseModel):
+class ResetRequest(BaseModel):
     email: EmailStr
-    
-class ConfirmReset(BaseModel):
+    new_password: str
+
+class ResetConfirm(BaseModel):
     email: EmailStr
     activation_code: str
-    new_password: str
-    confirm_password: str
-
