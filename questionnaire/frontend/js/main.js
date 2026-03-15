@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if(response.ok){
             alert("Успешный вход");
+            window.location.href = "/hello"
         } else {
             alert(data.detail);
         }
@@ -123,13 +124,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if(response.ok){
         if(localStorage.getItem("reset_email")){
-            alert("Пароль успешно изменён!"); // для сброса пароля
+            alert("Пароль успешно изменён!");
             localStorage.removeItem("reset_email");
             localStorage.removeItem("reset_code");
-            window.location.href = "/login"; // куда хочешь после смены
         } else {
-            alert("Регистрация завершена!"); // для подтверждения регистрации
-            window.location.href = "/";
+            alert("Регистрация завершена!");
+            window.location.href = "/hello";
         }
 }   else{
         alert(data.detail);

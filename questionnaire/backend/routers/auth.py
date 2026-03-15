@@ -5,6 +5,7 @@ from utils.token_utils import generate_access_token
 from utils.activation_code import generate_activation_code
 from utils.send_mail import send_email
 from routers.database import database
+from datetime import datetime
 
 router = APIRouter()
 
@@ -22,11 +23,14 @@ def register(user: RegisterUser, response: Response):
         "password": hash_password(user.password),
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "activation_code": activation_code
+        "activation_code": activation_code,
+        "created_at": datetime.utcnow()
     })
 
     #Отправка кода
     send_email(user.email, activation_code)
+    
+    
 
 
 #Регистрация через подтверждение кода
@@ -116,7 +120,8 @@ def reset_password(user: ResetRequest):
     database.password_reset.insert_one({
         "email": user.email,
         "new_password": hash_password(user.new_password),
-        "code": reset_code})
+        "code": reset_code,
+        "created_at": datetime.utcnow()})
     send_email(user.email, reset_code)
     return{"message": "Код отправлен!"}
 

@@ -27,3 +27,7 @@ def confirm_email():
 @router.get("/password")
 def password_reset():
     return FileResponse(FRONTEND_DIR / "password.html")
+
+@router.get("/hello")
+def hello():
+    return FileResponse(FRONTEND_DIR / "hello.html")
