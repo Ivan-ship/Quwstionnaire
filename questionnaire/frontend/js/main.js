@@ -131,34 +131,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //ЯНДЕКС OAUTH
     const oauthQueryParams = {
-        client_id: "ВАШ_CLIENT_ID",
+        client_id: "CLIENT_ID",
         response_type: "code",
         redirect_uri: "http://localhost:8000/auth/yandex/callback"
     };
 
     const tokenPageOrigin = window.location.origin;
 
-    if (window.YaAuthSuggest) {
-        window.YaAuthSuggest.init(
-            oauthQueryParams,
-            tokenPageOrigin,
-            {
-                view: "button",
-                parentId: "buttonContainerId",
-                buttonSize: 'm',
-                buttonView: 'main',
-                buttonTheme: 'light',
-                buttonBorderRadius: "0",
-                buttonIcon: 'ya',
-            }
-        )
-        .then(({handler}) => {
-            document
-                .getElementById("buttonContainerId")
-                ?.addEventListener("click", handler);
-        })
-        .catch(error => console.log('Ошибка OAuth', error));
-    }
+    if (window.YaAuthSuggest && !window.yaAuthInitialized) {
+    window.yaAuthInitialized = true;
+
+    const container = document.getElementById("buttonContainerId");
+
+    window.YaAuthSuggest.init(
+        oauthQueryParams,
+        tokenPageOrigin,
+        {
+            view: "button",
+            parentId: "buttonContainerId",
+            buttonSize: 'm',
+            buttonView: 'main',
+            buttonTheme: 'light',
+            buttonBorderRadius: "0",
+            buttonIcon: 'ya',
+        }
+    )
+    .then(({handler}) => {
+        if (container && !container.dataset.listenerAdded) {
+            container.addEventListener("click", handler);
+            container.dataset.listenerAdded = "true";
+        }
+    })
+
+    .catch(error => console.log('Ошибка OAuth', error));
+}
 
 });
 

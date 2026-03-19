@@ -1,4 +1,5 @@
 from fastapi import HTTPException, Response, APIRouter
+from fastapi.responses import RedirectResponse
 from models.user_models import RegisterUser, LoginUser, Confirm, ResetRequest, ResetConfirm
 from utils.security import hash_password, verify_password
 from utils.token_utils import generate_access_token
@@ -6,8 +7,10 @@ from utils.activation_code import generate_activation_code
 from utils.send_mail import send_email
 from routers.database import database
 from datetime import datetime
+from utils.config import YANDEX_CLIENT_ID, REDIRECT_URI, AUTHORIZE_URL
 
 router = APIRouter()
+
 
 @router.post("/register")
 def register(user: RegisterUser, response: Response):
@@ -142,3 +145,16 @@ def confirm_reset_password(user: ResetConfirm):
     database.password_reset.delete_one({"email": user.email})
     
     return{"message": "Пароль успешно изменен!"}
+
+#------------Yandex auth-----------------------
+
+#Редирект на яндекс
+@router.post("/auth/yandex/login")
+def yandex_login():
+    url = (
+        f"{AUTHORIZE_URL}"
+        f"?response_type=code"
+        f"&client_id = {YANDEX_CLIENT_ID}"
+        f"&redeirect_uri = {REDIRECT_URI}"
+    )
+    return RedirectResponse(url)
