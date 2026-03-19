@@ -7,7 +7,8 @@ from utils.activation_code import generate_activation_code
 from utils.send_mail import send_email
 from routers.database import database
 from datetime import datetime
-from utils.config import YANDEX_CLIENT_ID, REDIRECT_URI, AUTHORIZE_URL
+from utils.config import YANDEX_CLIENT_ID, REDIRECT_URI, AUTHORIZE_URL, USERINFO_URL
+import httpx
 
 router = APIRouter()
 
@@ -149,12 +150,69 @@ def confirm_reset_password(user: ResetConfirm):
 #------------Yandex auth-----------------------
 
 #Редирект на яндекс
-@router.post("/auth/yandex/login")
+@router.get("/auth/yandex/login")
 def yandex_login():
+    print(f"[DEBUG] Используем client_id для редиректа: {YANDEX_CLIENT_ID}")
     url = (
         f"{AUTHORIZE_URL}"
         f"?response_type=code"
-        f"&client_id = {YANDEX_CLIENT_ID}"
-        f"&redeirect_uri = {REDIRECT_URI}"
+        f"&client_id={YANDEX_CLIENT_ID}"
+        f"&redirect_uri={REDIRECT_URI}"
     )
+    print(f"[DEBUG] Редирект на Яндекс: {url}")
     return RedirectResponse(url)
+
+@router.get("/auth/yandex/callback")
+async def yandex_callback(code: str, response: Response):
+    async with httpx.AsyncClient() as client:
+
+        #Получение access токена
+        token_resp = await client.post(
+            ACCESS_TOKEN_URL,
+            data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "client_id": YANDEX_CLIENT_ID,
+                "client_secret": YANDEX_CLIENT_SECRET,                
+            }
+        )
+
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+
+        if not access_token:
+            raise HTTPException(status_code=400, detail="Не удалось получить токен!")
+
+        #Пользователь
+        user_resp = await client.get(
+            USERINFO_URL,
+            headers={"Authorization": f"OAuth {access_token}"}
+        )
+
+        user_data = user_resp.json()
+
+    #Регистрациия/вход(пока по yandex id)
+    yandex_id = user_data["id"]
+    email = user_data.get("default_email")
+
+    user = database.users.find_one({"yandex_id": yandex_id})
+
+    if not user:
+        database.users.insert_one({
+            "email": email,
+            "yandex_id": yandex_id,
+            "first_name": user_data.get("real_name", ""),
+            "auth_type": "yandex"
+        })
+
+    token = generate_access_token(user.email, username = user.email.split("@")[0])
+
+    response.set_cookie(
+        key="access_token",
+        value = token,
+        httponly = True,
+        max_age = 30 * 60,
+        samesite = "lax"
+    )
+
+    return RedirectResponse("/hello")
