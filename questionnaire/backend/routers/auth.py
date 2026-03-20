@@ -208,9 +208,11 @@ async def yandex_callback(code: str, response: Response):
             "auth_type": "yandex"
         })
         
-    user = database.users.find_one({"yandex_id": yandex_id})    
+    user = database.users.find_one({"yandex_id": yandex_id})
+
+    email = user.get("email")
     
-    token = generate_access_token(user.email, username = user.email.split("@")[0])
+    token = generate_access_token(email, username = email.split("@")[0])
 
     response.set_cookie(
         key="access_token",
