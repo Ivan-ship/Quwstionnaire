@@ -10,7 +10,10 @@ from datetime import datetime
 from utils.config import (YANDEX_CLIENT_ID,
                           REDIRECT_URI, AUTHORIZE_URL, 
                           USERINFO_URL, ACCESS_TOKEN_URL, 
-                          YANDEX_CLIENT_SECRET)
+                          YANDEX_CLIENT_SECRET,
+                          GITHUB_CLIENT_ID, GITHUB_REDIRECT_URL,
+                          GITHUB_AUTHORIZE_URL,
+                          GITHUB_SCOPE)
 import httpx
 
 router = APIRouter()
@@ -155,14 +158,12 @@ def confirm_reset_password(user: ResetConfirm):
 #Редирект на яндекс
 @router.get("/auth/yandex/login")
 def yandex_login():
-    print(f"[DEBUG] Используем client_id для редиректа: {YANDEX_CLIENT_ID}")
     url = (
         f"{AUTHORIZE_URL}"
         f"?response_type=code"
         f"&client_id={YANDEX_CLIENT_ID}"
         f"&redirect_uri={REDIRECT_URI}"
     )
-    print(f"[DEBUG] Редирект на Яндекс: {url}")
     return RedirectResponse(url)
 
 @router.get("/auth/yandex/callback")
@@ -223,3 +224,15 @@ async def yandex_callback(code: str, response: Response):
     )
 
     return RedirectResponse("/hello")
+
+#------------GitHub oath-----------------------
+@router.get("/auth/github/login")
+def github_auth():
+    url = (
+        f"{GITHUB_AUTHORIZE_URL}"
+        f"?client_id={GITHUB_CLIENT_ID}"
+        f"&redirect_uri={GITHUB_REDIRECT_URL}"
+        f"&scope={GITHUB_SCOPE}"
+    )
+    return RedirectResponse(url)
+

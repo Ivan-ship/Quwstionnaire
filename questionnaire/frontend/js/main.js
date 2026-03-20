@@ -164,9 +164,46 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     .catch(error => console.log('Ошибка OAuth', error));
+
+
+    //GITHUB Oauth
+    const oauthQueryParams = {
+        client_id: "GITHUB_CLIENT_ID",
+        response_type: "code",
+        redirect_uri: "http://localhost:8000/auth/github/callback"
+    };
+
+    const tokenPageOrigin = window.location.origin;
+
+    if (window.GithubAuthSuggest && !window.GithubAuthInitialized) {
+    window.GitHubAuthInitialized = true;
+
+
+    window.GitHubAuthSuggest.init(
+        oauthQueryParams,
+        tokenPageOrigin,
+        {
+            view: "button",
+            parentId: "buttonContainerId",
+            buttonSize: 'm',
+            buttonView: 'main',
+            buttonTheme: 'light',
+            buttonBorderRadius: "0",
+            buttonIcon: 'ya',
+        }
+    )
+    .then(({handler}) => {
+        if (container && !container.dataset.listenerAdded) {
+            container.addEventListener("click", handler);
+            container.dataset.listenerAdded = "true";
+        }
+    })
+
+    .catch(error => console.log('Ошибка OAuth', error));
 }
 
 });
+
 
 // СБРОС ПАРОЛЯ
 document.getElementById("passwordForm")?.addEventListener("submit", async function(e){

@@ -326,3 +326,27 @@ body{
 .yandex-login-btn img {
     width: 20px;
 }
+
+/*Регистрация через гитхаб*/
+.github-login-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background-color: #24292e; /* темный GitHub */
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+}
+
+.github-login-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+.github-login-btn:hover {
+  background-color: #444c56;
+}
