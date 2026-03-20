@@ -7,7 +7,10 @@ from utils.activation_code import generate_activation_code
 from utils.send_mail import send_email
 from routers.database import database
 from datetime import datetime
-from utils.config import YANDEX_CLIENT_ID, REDIRECT_URI, AUTHORIZE_URL, USERINFO_URL
+from utils.config import (YANDEX_CLIENT_ID,
+                          REDIRECT_URI, AUTHORIZE_URL, 
+                          USERINFO_URL, ACCESS_TOKEN_URL, 
+                          YANDEX_CLIENT_SECRET)
 import httpx
 
 router = APIRouter()
@@ -204,7 +207,9 @@ async def yandex_callback(code: str, response: Response):
             "first_name": user_data.get("real_name", ""),
             "auth_type": "yandex"
         })
-
+        
+    user = database.users.find_one({"yandex_id": yandex_id})    
+    
     token = generate_access_token(user.email, username = user.email.split("@")[0])
 
     response.set_cookie(
