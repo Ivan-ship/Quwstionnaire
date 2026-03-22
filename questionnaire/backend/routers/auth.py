@@ -13,7 +13,8 @@ from utils.config import (YANDEX_CLIENT_ID,
                           YANDEX_CLIENT_SECRET,
                           GITHUB_CLIENT_ID, GITHUB_REDIRECT_URL,
                           GITHUB_AUTHORIZE_URL,
-                          GITHUB_SCOPE)
+                          GITHUB_SCOPE, GITHUB_CLIENT_SECRET, 
+                          GITHUB_INFO, GITHUB_ACCESS_TOKEN_URL)
 import httpx
 
 router = APIRouter()
@@ -236,3 +237,71 @@ def github_auth():
     )
     return RedirectResponse(url)
 
+
+@router.get("/auth/github/callback")
+async def github_callback(code: str, response: Response):
+    async with httpx.AsyncClient() as client:
+        
+        #access token
+        
+        token_resp = await client.post(
+            GITHUB_ACCESS_TOKEN_URL,
+            data = {
+                "code": code,
+                "client_id": GITHUB_CLIENT_ID,
+                "client_secret": GITHUB_CLIENT_SECRET,
+            },
+            headers={"Accept": "application/json"}
+        )
+        
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token")
+        
+        if not access_token:
+            raise HTTPException(status_code = 400, detail = "Токен не существет")
+        
+        user_resp = await client.get(
+            GITHUB_INFO,
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        
+        user_data = user_resp.json()
+    
+    #Регистрация
+    github_id = user_data["id"]
+    email = user_data.get("email")
+    
+    if not email:
+        emails_resp = await client.get(
+            "https://api.github.com/user/emails",
+            headers = {"Authorization": f"Bearer {access_token}"}
+        )
+        emails = emails_resp.json()
+        #Подтвержденный email
+        email = next((e["email"] for e in emails if e["verified"]), None)
+    
+    user = database.users.find_one({"github_id": github_id})
+
+    if not user:
+        database.users.insert_one({
+            "email": email,
+            "github_id": github_id,
+            "first_name": user_data.get("name", ""),
+            "auth_type": "github"
+        })
+        
+    user = database.users.find_one({"github_id": github_id})
+
+    email = user.get("email")
+    
+    token = generate_access_token(email, username = email.split("@")[0])
+
+    response.set_cookie(
+        key="access_token",
+        value = token,
+        httponly = True,
+        max_age = 30 * 60,
+        samesite = "lax"
+    )
+
+    return RedirectResponse("/hello")

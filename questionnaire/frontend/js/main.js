@@ -127,80 +127,74 @@ document.addEventListener("DOMContentLoaded", () => {
             alert(data.detail);
         }
     });
+});
 
+document.addEventListener("DOMContentLoaded", () => {
 
     //ЯНДЕКС OAUTH
-    const oauthQueryParams = {
-        client_id: "CLIENT_ID",
+    const yaOauthParams = {
+        client_id: "YANDEX_CLIENT_ID",
         response_type: "code",
         redirect_uri: "http://localhost:8000/auth/yandex/callback"
     };
 
     const tokenPageOrigin = window.location.origin;
+    const yaContainer = document.getElementById("yaButtonContainerId");
 
     if (window.YaAuthSuggest && !window.yaAuthInitialized) {
-    window.yaAuthInitialized = true;
+        window.yaAuthInitialized = true;
 
-    const container = document.getElementById("buttonContainerId");
+        window.YaAuthSuggest.init(
+            yaOauthParams,
+            tokenPageOrigin,
+            {
+                view: "button",
+                parentId: "yaButtonContainerId",
+                buttonSize: 'm',
+                buttonView: 'main',
+                buttonTheme: 'light',
+                buttonBorderRadius: "0",
+                buttonIcon: 'ya',
+            }
+        ).then(({ handler }) => {
+            if (yaContainer && !yaContainer.dataset.listenerAdded) {
+                yaContainer.addEventListener("click", handler);
+                yaContainer.dataset.listenerAdded = "true";
+            }
+        }).catch(error => console.log('Ошибка OAuth Яндекс', error));
+    }
 
-    window.YaAuthSuggest.init(
-        oauthQueryParams,
-        tokenPageOrigin,
-        {
-            view: "button",
-            parentId: "buttonContainerId",
-            buttonSize: 'm',
-            buttonView: 'main',
-            buttonTheme: 'light',
-            buttonBorderRadius: "0",
-            buttonIcon: 'ya',
-        }
-    )
-    .then(({handler}) => {
-        if (container && !container.dataset.listenerAdded) {
-            container.addEventListener("click", handler);
-            container.dataset.listenerAdded = "true";
-        }
-    })
-
-    .catch(error => console.log('Ошибка OAuth', error));
-
-
-    //GITHUB Oauth
-    const oauthQueryParams = {
+    //GITHUB OAUTH
+    const githubOauthParams = {
         client_id: "GITHUB_CLIENT_ID",
         response_type: "code",
         redirect_uri: "http://localhost:8000/auth/github/callback"
     };
 
-    const tokenPageOrigin = window.location.origin;
+    const githubContainer = document.getElementById("githubButtonContainerId");
 
-    if (window.GithubAuthSuggest && !window.GithubAuthInitialized) {
-    window.GitHubAuthInitialized = true;
+    if (window.GitHubAuthSuggest && !window.GitHubAuthInitialized) {
+        window.GitHubAuthInitialized = true;
 
-
-    window.GitHubAuthSuggest.init(
-        oauthQueryParams,
-        tokenPageOrigin,
-        {
-            view: "button",
-            parentId: "buttonContainerId",
-            buttonSize: 'm',
-            buttonView: 'main',
-            buttonTheme: 'light',
-            buttonBorderRadius: "0",
-            buttonIcon: 'ya',
-        }
-    )
-    .then(({handler}) => {
-        if (container && !container.dataset.listenerAdded) {
-            container.addEventListener("click", handler);
-            container.dataset.listenerAdded = "true";
-        }
-    })
-
-    .catch(error => console.log('Ошибка OAuth', error));
-}
+        window.GitHubAuthSuggest.init(
+            githubOauthParams,
+            tokenPageOrigin,
+            {
+                view: "button",
+                parentId: "githubButtonContainerId",
+                buttonSize: 'm',
+                buttonView: 'main',
+                buttonTheme: 'light',
+                buttonBorderRadius: "0",
+                buttonIcon: 'github',
+            }
+        ).then(({ handler }) => {
+            if (githubContainer && !githubContainer.dataset.listenerAdded) {
+                githubContainer.addEventListener("click", handler);
+                githubContainer.dataset.listenerAdded = "true";
+            }
+        }).catch(error => console.log('Ошибка OAuth GitHub', error));
+    }
 
 });
 

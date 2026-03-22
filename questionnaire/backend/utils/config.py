@@ -16,6 +16,6 @@ USERINFO_URL = "https://login.yandex.ru/info"
 
 GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
 GITHUB_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
-GITHUB_REDIRECT_URL = "http://localhost:3000/auth/github/callback"
+GITHUB_REDIRECT_URL = "http://localhost:8000/auth/github/callback"
 GITHUB_INFO = "https://api.github.com/user"
 GITHUB_SCOPE = "user"
