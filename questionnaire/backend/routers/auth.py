@@ -1,8 +1,12 @@
-from fastapi import HTTPException, Response, APIRouter
+from fastapi import HTTPException, Response, APIRouter, Cookie
 from fastapi.responses import RedirectResponse
 from models.user_models import RegisterUser, LoginUser, Confirm, ResetRequest, ResetConfirm
 from utils.security import hash_password, verify_password
-from utils.token_utils import generate_access_token
+from utils.token_utils import (
+    generate_access_token, 
+    generate_refressh_token, 
+    SECRET_KEY,
+    ALGORIGHTM)
 from utils.activation_code import generate_activation_code
 from utils.send_mail import send_email
 from routers.database import database
@@ -16,6 +20,7 @@ from utils.config import (YANDEX_CLIENT_ID,
                           GITHUB_SCOPE, GITHUB_CLIENT_SECRET, 
                           GITHUB_INFO, GITHUB_ACCESS_TOKEN_URL)
 import httpx
+import jwt
 
 router = APIRouter()
 
@@ -96,23 +101,25 @@ def login(user: LoginUser, response: Response):
         raise HTTPException(status_code=400, detail="Не верный логин или парль!")
     
 
-    #Выдача токена после регистрации
-    token = generate_access_token(user.email, username = user.email.split("@")[0])
+    # Генерация access токена
+    access_token = generate_access_token(
+        user_id = str(db_user["_id"]), 
+        username = db_user["email"].split("@")[0], 
+        remember_me = user.remember_me)
+    
+    # Генерация refresh токена
+    refresh_token = generate_refressh_token(
+        user_id = str(db_user["_id"]), 
+        username = db_user["email"].split("@")[0])
     
     #зАПОМНИТЬ ПОЛЬЗОВАТЕЛЯ 
     if user.remember_me:
-        max_age = 60 * 60 * 24 * 30
+        access_max_age = 60 * 60 * 24 * 30
     else:
-        max_age = 30 * 60
+        access_max_age = 30 * 60
 
-    #Сохранение токена в файл cookie
-    response.set_cookie(
-        key="access_token",
-        value = token,
-        httponly = True,
-        max_age = max_age,
-        samesite = "lax"
-    )
+    response.set_cookie("access_token", access_token, max_age = access_max_age, httponly = True)
+    response.set_cookie("refresh_token", refresh_token, max_age = 60 * 60 * 24 * 30, httponly = True)
 
     return{"message": "Добро пожаловать!"}
 
@@ -153,6 +160,30 @@ def confirm_reset_password(user: ResetConfirm):
     database.password_reset.delete_one({"email": user.email})
     
     return{"message": "Пароль успешно изменен!"}
+
+
+#Обновление access_token
+@router.post("/refresh")
+def refresh_token(response: Response, refresh_token: str = Cookie(None)):
+    if not refresh_token:
+        raise HTTPException(status_code = 400, detail = "refresh_token не существует")
+    
+
+    try:
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorightm = [ALGORIGHTM])
+        user_id = payload["user_id"]
+        username = payload['username']
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code = 401, detail = "Refresh истек")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code = 401, detail = "Невалидный токен!")
+    
+
+    # Выдача нового токена
+    new_access_token = generate_access_token(user_id, username)
+    response.set_cookie("access_token", new_access_token, max_age = 30 * 60, httponly = True)
+
+    return{"access_token": new_access_token}
 
 #------------Yandex auth-----------------------
 
