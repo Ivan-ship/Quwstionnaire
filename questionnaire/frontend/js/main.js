@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const yaOauthParams = {
         client_id: "YANDEX_CLIENT_ID",
         response_type: "code",
-        redirect_uri: "http://localhost:8000/auth/yandex/callback"
+        redirect_uri: "http://localhost:8000/auth/github/callback"
     };
 
     const tokenPageOrigin = window.location.origin;
@@ -168,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const githubOauthParams = {
         client_id: "GITHUB_CLIENT_ID",
         response_type: "code",
-        redirect_uri: "http://localhost:8000/auth/github/callback"
+        redirect_uri: "http://127.0.0.1:8000/auth/github/callback"
     };
 
     const githubContainer = document.getElementById("githubButtonContainerId");

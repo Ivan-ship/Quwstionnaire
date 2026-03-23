@@ -296,6 +296,8 @@ async def github_callback(code: str, response: Response):
     
     token = generate_access_token(email, username = email.split("@")[0])
 
+    resp = RedirectResponse("/hello")
+
     response.set_cookie(
         key="access_token",
         value = token,
@@ -304,4 +306,4 @@ async def github_callback(code: str, response: Response):
         samesite = "lax"
     )
 
-    return RedirectResponse("/hello")
+    return resp
