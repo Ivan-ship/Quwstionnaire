@@ -242,3 +242,19 @@ document.getElementById("passwordForm")?.addEventListener("submit", async functi
         alert("Ошибка запроса");
     }
 });
+
+//Выход из приложения(разлогинивание)
+document.addEventListener("DOMContentLoaded", () => {
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    logoutBtn?.addEventListener("click", function () {
+        // Удаляем все данные пользователя
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("confirm_email");
+        localStorage.removeItem("reset_email");
+        localStorage.removeItem("reset_code");
+        
+        window.location.href = "/"; 
+    });
+});
