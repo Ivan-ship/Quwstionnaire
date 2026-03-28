@@ -3,6 +3,8 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from routers import auth, pages
 from routers.database import database
+from routers.redis_db import r
+import redis
 from datetime import datetime
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -29,3 +31,11 @@ def connect_db():
     collection = database.list_collection_names()
     return{"collection": collection}
 
+
+@app.get("/connect-redis")
+def connect_redis():
+    try:
+        r.ping()
+        return{"status: " "connected"}
+    except Exception as ex:
+         return {"status": "error", "message": str(e)}
