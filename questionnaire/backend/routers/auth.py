@@ -368,3 +368,9 @@ def logout(request: Request, response: Response):
         #Удаляем рефреш токен
         if email:
             r.delete(f"refresh:{email}")
+    
+    #Удаляем из cokkie
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+    
+    return {"message": "Успешный выход"}
