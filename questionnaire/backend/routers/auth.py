@@ -356,4 +356,14 @@ def logout(request: Request, response: Response):
     #Добавляем токен в redis
     if token:
         try:
-            pay
+            payload = jwt.decode(token, SECRET_KEY, algorihtm = [ALGORIGHTM])
+            email = payload.get("sub")
+        except:
+            email: None
+            
+        r.set(
+            f"blacklist: {token}", "true",
+            ex = 30 * 60)
+        
+        #Удаляем рефреш токен
+        
