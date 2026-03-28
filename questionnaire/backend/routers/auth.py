@@ -1,6 +1,7 @@
 from fastapi import HTTPException, Response, APIRouter, Cookie
 from fastapi.responses import RedirectResponse
 from models.user_models import RegisterUser, LoginUser, Confirm, ResetRequest, ResetConfirm
+from routers.redis_db import r
 from utils.security import hash_password, verify_password
 from utils.token_utils import (
     generate_access_token, 
@@ -8,6 +9,7 @@ from utils.token_utils import (
     SECRET_KEY,
     ALGORIGHTM)
 from utils.activation_code import generate_activation_code
+from fastapi import Request
 from utils.send_mail import send_email
 from routers.database import database
 from datetime import datetime
@@ -21,12 +23,13 @@ from utils.config import (YANDEX_CLIENT_ID,
                           GITHUB_INFO, GITHUB_ACCESS_TOKEN_URL)
 import httpx
 import jwt
+import redis
 
 router = APIRouter()
 
 
 @router.post("/register")
-def register(user: RegisterUser, response: Response):
+def register(user: RegisterUser, response: RegisterUser):
     existing_user = database.users.find_one({"email": user.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Данный пользователь уже зарегистрирован!")
@@ -51,7 +54,7 @@ def register(user: RegisterUser, response: Response):
 
 #Регистрация через подтверждение кода
 @router.post("/confirm")
-def confirm(user: Confirm, response: Response):
+def confirm(user: Confirm, response: LoginUser):
     
     pending_user = database.pending_users.find_one({"email": user.email})
     
@@ -100,6 +103,7 @@ def login(user: LoginUser, response: Response):
     if not verify_password(user.password, db_user["password"]):
         raise HTTPException(status_code=400, detail="Не верный логин или парль!")
     
+    
 
     # Генерация access токена
     access_token = generate_access_token(
@@ -111,6 +115,10 @@ def login(user: LoginUser, response: Response):
     refresh_token = generate_refressh_token(
         user_id = str(db_user["_id"]), 
         username = db_user["email"].split("@")[0])
+    
+    r.set(f"refresh:{user.email}",
+          refresh_token,
+          ex = 60 * 60 * 24 * 30)
     
     #зАПОМНИТЬ ПОЛЬЗОВАТЕЛЯ 
     if user.remember_me:
@@ -338,3 +346,18 @@ async def github_callback(code: str, response: Response):
     )
 
     return resp
+
+# Выход(разлогинивание)
+@router.post("/logout")
+def logout(request: Request, response: Response):
+    token = request.cookies.get("access_token")
+    
+    #Добавляем токен в redis
+    if token:
+        r.set(
+            f"blacklist: {token}", "true",
+            ex = 60 * 30
+        )
+    
+    #Удаляем refresh_token
+    r.delete(f"refresh: {user.email}")
