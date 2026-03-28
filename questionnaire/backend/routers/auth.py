@@ -24,6 +24,7 @@ from utils.config import (YANDEX_CLIENT_ID,
 import httpx
 import jwt
 import redis
+from utils.token_utils import decode_token
 
 router = APIRouter()
 
@@ -354,10 +355,5 @@ def logout(request: Request, response: Response):
     
     #Добавляем токен в redis
     if token:
-        r.set(
-            f"blacklist: {token}", "true",
-            ex = 60 * 30
-        )
-    
-    #Удаляем refresh_token
-    r.delete(f"refresh: {user.email}")
+        try:
+            pay
