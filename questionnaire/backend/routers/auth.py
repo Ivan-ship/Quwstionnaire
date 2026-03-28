@@ -357,12 +357,12 @@ def logout(request: Request, response: Response):
     if token:
         try:
             payload = jwt.decode(token, SECRET_KEY, algorihtm = [ALGORIGHTM])
-            email = payload.get("sub")
+            email = payload.get("user_id")
         except:
             email: None
             
         r.set(
-            f"blacklist: {token}", "true",
+            f"blacklist:{token}", "true",
             ex = 30 * 60)
         
         #Удаляем рефреш токен
