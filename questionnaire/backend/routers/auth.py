@@ -366,4 +366,5 @@ def logout(request: Request, response: Response):
             ex = 30 * 60)
         
         #Удаляем рефреш токен
-        
+        if email:
+            r.delete(f"refresh:{email}")
