@@ -382,6 +382,7 @@ def logout(request: Request, response: Response):
         user_id = payload.get("user_id")
         if user_id:
             r.delete(f"refresh:{user_id}")
+        
     #Удаляем из cokkie
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
