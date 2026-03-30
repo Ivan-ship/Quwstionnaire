@@ -30,7 +30,7 @@ router = APIRouter()
 
 
 @router.post("/register")
-def register(user: RegisterUser, response: RegisterUser):
+def register(user: RegisterUser, response: Response):
     existing_user = database.users.find_one({"email": user.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Данный пользователь уже зарегистрирован!")
@@ -50,12 +50,14 @@ def register(user: RegisterUser, response: RegisterUser):
     #Отправка кода
     send_email(user.email, activation_code)
     
+    return {"message": "Код подтверждения отправлен!"}
+    
     
 
 
 #Регистрация через подтверждение кода
 @router.post("/confirm")
-def confirm(user: Confirm, response: LoginUser):
+def confirm(user: Confirm, response: Response):
     
     pending_user = database.pending_users.find_one({"email": user.email})
     
@@ -117,7 +119,7 @@ def login(user: LoginUser, response: Response):
         user_id = str(db_user["_id"]), 
         username = db_user["email"].split("@")[0])
     
-    r.set(f"refresh:{user.email}",
+    r.set(f"refresh:{db_user['_id']}",
           refresh_token,
           ex = 60 * 60 * 24 * 30)
     
@@ -179,18 +181,27 @@ def refresh_token(response: Response, refresh_token: str = Cookie(None)):
     
 
     try:
-        payload = jwt.decode(refresh_token, SECRET_KEY, algorightm = [ALGORIGHTM])
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms = [ALGORIGHTM])
         user_id = payload["user_id"]
-        username = payload['username']
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code = 401, detail = "Refresh истек")
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code = 401, detail = "Невалидный токен!")
+        raise HTTPException(status_code=400, detail = "Не валидный токен!")
+    
+    stored_token = r.get(f"refresh:{user_id}")
+    
+    
+    if not stored_token or stored_token.decode() != refresh_token:
+        raise HTTPException(status_code = 400, detail = "Невалидный токен!")
     
 
     # Выдача нового токена
-    new_access_token = generate_access_token(user_id, username)
-    response.set_cookie("access_token", new_access_token, max_age = 30 * 60, httponly = True)
+    new_access_token = generate_access_token(user_id, payload["username"])
+    response.set_cookie(
+        "access_token", 
+        new_access_token, 
+        max_age = 30 * 60, 
+        httponly = True)
 
     return{"access_token": new_access_token}
 
@@ -255,8 +266,10 @@ async def yandex_callback(code: str, response: Response):
     email = user.get("email")
     
     token = generate_access_token(email, username = email.split("@")[0])
+    
+    resp = RedirectResponse("/hello")
 
-    response.set_cookie(
+    resp.set_cookie(
         key="access_token",
         value = token,
         httponly = True,
@@ -264,7 +277,7 @@ async def yandex_callback(code: str, response: Response):
         samesite = "lax"
     )
 
-    return RedirectResponse("/hello")
+    return resp
 
 #------------GitHub oath-----------------------
 @router.get("/auth/github/login")
@@ -338,7 +351,7 @@ async def github_callback(code: str, response: Response):
 
     resp = RedirectResponse("/hello")
 
-    response.set_cookie(
+    resp.set_cookie(
         key="access_token",
         value = token,
         httponly = True,
@@ -356,19 +369,19 @@ def logout(request: Request, response: Response):
     #Добавляем токен в redis
     if token:
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorihtm = [ALGORIGHTM])
-            email = payload.get("user_id")
-        except:
-            email: None
+            payload = jwt.decode(token, SECRET_KEY, algorithms=  [ALGORIGHTM])
+            user_id = payload.get("user_id")
+        except jwt.InvalidTokenError:
+            user_id = None
             
         r.set(
             f"blacklist:{token}", "true",
             ex = 30 * 60)
         
         #Удаляем рефреш токен
-        if email:
-            r.delete(f"refresh:{email}")
-    
+        user_id = payload.get("user_id")
+        if user_id:
+            r.delete(f"refresh:{user_id}")
     #Удаляем из cokkie
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
