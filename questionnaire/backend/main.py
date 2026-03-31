@@ -6,6 +6,7 @@ from routers.database import database
 from routers.redis_db import r
 import redis
 from datetime import datetime
+from business_logic.postgresql import engine
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
@@ -36,6 +37,17 @@ def connect_db():
 def connect_redis():
     try:
         r.ping()
-        return{"status: " "connected"}
+        return{"status": "connected"}
     except Exception as ex:
-         return {"status": "error", "message": str(e)}
+         return {"status": "error", "message": str(ex)}
+
+
+# Подключение postgresql
+@app.get("/connect-postgresql")
+def connect_postgres():
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT version();"))
+            return{"status": "connected"}
+    except Exception as ex:
+        return {"status": "error", "message": str(ex)}
