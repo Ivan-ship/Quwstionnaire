@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Response, APIRouter, Cookie
 from fastapi.responses import RedirectResponse
-from models.user_models import RegisterUser, LoginUser, Confirm, ResetRequest, ResetConfirm
+from models.user_models import User, RegisterUser, Confirm, LoginUser, ResetRequest, ResetConfirm, PendingUser, ResetPassword
 from routers.redis_db import r
 from utils.security import hash_password, verify_password
 from utils.token_utils import (
@@ -11,8 +11,11 @@ from utils.token_utils import (
 from utils.activation_code import generate_activation_code
 from fastapi import Request
 from utils.send_mail import send_email
-from routers.database import database
+from routers.database import SessionLocal
 from datetime import datetime
+from fastapi import Depends
+from sqlalchemy.orm import Session
+from routers.dependencies import get_db
 from utils.config import (YANDEX_CLIENT_ID,
                           REDIRECT_URI, AUTHORIZE_URL, 
                           USERINFO_URL, ACCESS_TOKEN_URL, 
@@ -30,23 +33,26 @@ router = APIRouter()
 
 
 @router.post("/register")
-def register(user: RegisterUser, response: Response):
-    existing_user = database.users.find_one({"email": user.email})
+def register(user: RegisterUser, db: Session = Depends(get_db)):
+
+    existing_user = db.query(User).filter(User.email == user.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Данный пользователь уже зарегистрирован!")
     
     activation_code = generate_activation_code()
     
     #Временный пользователь
-    database.pending_users.insert_one({
-        "email": user.email,
-        "password": hash_password(user.password),
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "activation_code": activation_code,
-        "created_at": datetime.utcnow()
-    })
-
+    pending_user = PendingUser(
+        email = user.email,
+        password = hash_password(user.password),
+        first_name = user.first_name,
+        last_name = user.last_name,
+        activation_code = activation_code,
+        created_ad = datetime.utcnow()
+    )
+    db.add(pending_user)
+    db.commit()
+    
     #Отправка кода
     send_email(user.email, activation_code)
     
@@ -57,31 +63,34 @@ def register(user: RegisterUser, response: Response):
 
 #Регистрация через подтверждение кода
 @router.post("/confirm")
-def confirm(user: Confirm, response: Response):
+def confirm(user: Confirm, response: Response, db: Session = Depends(get_db)):
     
-    pending_user = database.pending_users.find_one({"email": user.email})
+    pending_user = db.query(PendingUser).filter(PendingUser.email == user.email).first()
     
     if not pending_user:
         raise HTTPException(status_code=400, detail="Пользователь не найден")
     
     
-    if pending_user["activation_code"] != user.activation_code:
+    if pending_user.activation_code != user.activation_code:
         raise HTTPException(status_code=400, detail="Введён не верный код")
     
       #Хеширование пароля
-    hashed_password = pending_user["password"]
+    hashed_password = pending_user.password
     
-    database.users.insert_one({
-        "email": pending_user["email"],
-        "password": pending_user["password"],
-        "first_name": pending_user["first_name"],
-        "last_name": pending_user["last_name"]
-    })
-    
-    database.pending_users.delete_one({"email": pending_user["email"]})
+    new_user = User(
+        email = pending_user.email,
+        password = pending_user.password,
+        first_name = pending_user.first_name,
+        last_name = pending_user.last_name
+    )
+
+    db.add(new_user)
+    db.delete(pending_user)
+    db.commit()
+    db.refresh(new_user)
     
     #Выдача токена после регистрации
-    token = generate_access_token(pending_user["email"], username=pending_user["email"].split("@")[0])
+    token = generate_access_token(user_id = str(new_user.user_id), username=pending_user.email.split("@")[0])
     
 
     #Сохранение токена в файл cookie
@@ -97,29 +106,29 @@ def confirm(user: Confirm, response: Response):
 
 #POST запрос входа
 @router.post("/login")
-def login(user: LoginUser, response: Response):
-    db_user = database.users.find_one({"email": user.email})
+def login(user: LoginUser, response: Response, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.email == user.email).first()
 
     if not db_user:
         raise HTTPException(status_code=400, detail="Вы ещё не зарегистрировались!")
 
-    if not verify_password(user.password, db_user["password"]):
+    if not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=400, detail="Не верный логин или парль!")
     
     
 
     # Генерация access токена
     access_token = generate_access_token(
-        user_id = str(db_user["_id"]), 
-        username = db_user["email"].split("@")[0], 
+        user_id = str(db_user.user_id), 
+        username = db_user.email.split("@")[0], 
         remember_me = user.remember_me)
     
     # Генерация refresh токена
     refresh_token = generate_refressh_token(
-        user_id = str(db_user["_id"]), 
-        username = db_user["email"].split("@")[0])
+        user_id = str(db_user.user_id), 
+        username = db_user.email.split("@")[0])
     
-    r.set(f"refresh:{db_user['_id']}",
+    r.set(f"refresh:{db_user.user_id}",
           refresh_token,
           ex = 60 * 60 * 24 * 30)
     
@@ -137,8 +146,8 @@ def login(user: LoginUser, response: Response):
 
 #Сброс пароля
 @router.post("/reset")
-def reset_password(user: ResetRequest):
-    register_user = database.users.find_one({"email": user.email})
+def reset_password(user: ResetRequest, db: Session = Depends(get_db)):
+    register_user = db.query(User).filter(User.email == user.email).first()
     
     if not register_user:
         raise HTTPException(status_code = 400, detail = "Пользователя не существует.")
@@ -146,29 +155,36 @@ def reset_password(user: ResetRequest):
     reset_code = generate_activation_code()
     
     #Верменная бд для хранения логина и кода активации
-    database.password_reset.insert_one({
-        "email": user.email,
-        "new_password": hash_password(user.new_password),
-        "code": reset_code,
-        "created_at": datetime.utcnow()})
+    reset_entry = ResetPassword(
+        email = user.email,
+        new_password = hash_password(user.new_password),
+        code = reset_code,
+        created_ad = datetime.utcnow()
+    )
+    db.add(reset_entry)
+    db.commit()
+
     send_email(user.email, reset_code)
+
     return{"message": "Код отправлен!"}
 
 
 @router.post("/reset/confirm")
-def confirm_reset_password(user: ResetConfirm):
+def confirm_reset_password(user: ResetConfirm, db: Session = Depends(get_db)):
 
-    reset = database.password_reset.find_one({"email": user.email})
+    reset = db.query(ResetPassword).filter(ResetPassword.email == user.email).first()
 
     if not reset:
         raise HTTPException(status_code=400, detail="Запрос не найден!")
 
-    if reset["code"] != user.activation_code:
+    if reset.code != user.activation_code:
         raise HTTPException(status_code=400, detail="Не верный код подтверждения!")
     
-    database.users.update_one({"email": user.email}, 
-    {"$set":{"password": reset["new_password"]}})
-    database.password_reset.delete_one({"email": user.email})
+    db_user = db.query(User).filter(User.email == user.email).first()
+    db_user.password = reset.new_password
+
+    db.delete(reset)
+    db.commit()
     
     return{"message": "Пароль успешно изменен!"}
 
@@ -219,7 +235,7 @@ def yandex_login():
     return RedirectResponse(url)
 
 @router.get("/auth/yandex/callback")
-async def yandex_callback(code: str, response: Response):
+async def yandex_callback(code: str, response: Response, db: Session = Depends(get_db)):
     async with httpx.AsyncClient() as client:
 
         #Получение access токена
@@ -248,24 +264,23 @@ async def yandex_callback(code: str, response: Response):
         user_data = user_resp.json()
 
     #Регистрациия/вход(пока по yandex id)
-    yandex_id = user_data["id"]
+    yandex_id = user_data.get("id")
     email = user_data.get("default_email")
 
-    user = database.users.find_one({"yandex_id": yandex_id})
+    user = db.query(User).filter(User.email == email).first()
 
     if not user:
-        database.users.insert_one({
-            "email": email,
-            "yandex_id": yandex_id,
-            "first_name": user_data.get("real_name", ""),
-            "auth_type": "yandex"
-        })
+        user = User(
+            email = email,
+            password = "oauth",
+            first_name = user_data.get("real_name", ""),
+            last_name = ""
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
         
-    user = database.users.find_one({"yandex_id": yandex_id})
-
-    email = user.get("email")
-    
-    token = generate_access_token(email, username = email.split("@")[0])
+    token = generate_access_token(user_id = str(user.user_id), username = user.email.split("@")[0])
     
     resp = RedirectResponse("/hello")
 
@@ -292,7 +307,7 @@ def github_auth():
 
 
 @router.get("/auth/github/callback")
-async def github_callback(code: str, response: Response):
+async def github_callback(code: str, response: Response, db: Session = Depends(get_db)):
     async with httpx.AsyncClient() as client:
         
         #access token
@@ -326,28 +341,28 @@ async def github_callback(code: str, response: Response):
     
     if not email:
         emails_resp = await client.get(
-            "https://api.github.com/user/emails",
+        "https://api.github.com/user/emails",
             headers = {"Authorization": f"Bearer {access_token}"}
         )
         emails = emails_resp.json()
         #Подтвержденный email
-        email = next((e["email"] for e in emails if e["verified"]), None)
-    
-    user = database.users.find_one({"github_id": github_id})
+        email = next((e["email"] for e in emails if e.get("verified")), None)
+
+    user = db.query(User).filter(User.email == email).first()
+
 
     if not user:
-        database.users.insert_one({
-            "email": email,
-            "github_id": github_id,
-            "first_name": user_data.get("name", ""),
-            "auth_type": "github"
-        })
-        
-    user = database.users.find_one({"github_id": github_id})
-
-    email = user.get("email")
+        user = User(
+            email = email,
+            password = "oauth",
+            first_name = user_data.get("name", ""),
+            last_name = ""
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     
-    token = generate_access_token(email, username = email.split("@")[0])
+    token = generate_access_token(user_id=str(user.user_id), username = email.split("@")[0])
 
     resp = RedirectResponse("/hello")
 
@@ -378,8 +393,7 @@ def logout(request: Request, response: Response):
             f"blacklist:{token}", "true",
             ex = 30 * 60)
         
-        #Удаляем рефреш токен
-        user_id = payload.get("user_id")
+       
         if user_id:
             r.delete(f"refresh:{user_id}")
         

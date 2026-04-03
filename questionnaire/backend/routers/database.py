@@ -1,17 +1,24 @@
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, declarative_base
 import os
-from pymongo import MongoClient
 from dotenv import load_dotenv
 
 load_dotenv()
 
-MONGO_URL = os.getenv("MONGO_URL")
-DATABASE_NAME = os.getenv("DATABASE_NAME")
+DATABASE_URL = os.getenv("POSTGRESQL_CONNECT")
 
-client = MongoClient(MONGO_URL)
-database = client[DATABASE_NAME]
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(
+    autocommit = False,
+    autoflush= False,
+    bind=engine
+)
+
+Base = declarative_base()
 
 try:
-    client.admin.command("ping")
-    print("MongoDB подключилась успешно")
-except Exception as e:
-    print("Ошибка подключения к MongoDb:", e)
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))
+    print("PostgreSQL подключилась успешно!")
+except Exception as ex:
+    print("Ошибка подключения!", ex)
