@@ -128,9 +128,10 @@ def login(user: LoginUser, response: Response, db: Session = Depends(get_db)):
         user_id = str(db_user.user_id), 
         username = db_user.email.split("@")[0])
     
-    r.set(f"refresh:{db_user.user_id}",
-          refresh_token,
-          ex = 60 * 60 * 24 * 30)
+    refresh_key = f"refresh:{str(db_user.user_id)}"
+    
+    result = r.set(refresh_key, refresh_token, ex = 60 * 60 * 24 * 30)
+    print("refresh saved:", result) 
     
     #зАПОМНИТЬ ПОЛЬЗОВАТЕЛЯ 
     if user.remember_me:
@@ -380,12 +381,14 @@ async def github_callback(code: str, response: Response, db: Session = Depends(g
 @router.post("/logout")
 def logout(request: Request, response: Response):
     token = request.cookies.get("access_token")
+
+    user_id = None
     
     #Добавляем токен в redis
     if token:
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=  [ALGORIGHTM])
-            user_id = payload.get("user_id")
+            user_id = str(payload.get("user_id"))
         except jwt.InvalidTokenError:
             user_id = None
             
@@ -395,7 +398,8 @@ def logout(request: Request, response: Response):
         
        
         if user_id:
-            r.delete(f"refresh:{user_id}")
+            delete = r.delete(f"refresh:{user_id}")
+            print("refresh deleted:", delete)
         
     #Удаляем из cokkie
     response.delete_cookie("access_token")

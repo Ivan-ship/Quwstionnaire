@@ -21,7 +21,7 @@ def generate_access_token(user_id: int, username: str, expires_time: int = 30, r
         "exp": expires_time.timestamp()
     }
 
-    token = jwt.encode(payload, SECRET_KEY, ALGORIGHTM)
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORIGHTM)
     return token
 
 #Рефреш токен
@@ -34,7 +34,7 @@ def generate_refressh_token(user_id: str, username: str):
         "iat": now,
         "exp": exprice_time.timestamp()
     }
-    token = jwt.encode(payload, SECRET_KEY, ALGORIGHTM)
+    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORIGHTM)
     return token
 
 #Декодирование токена

@@ -247,7 +247,12 @@ document.getElementById("passwordForm")?.addEventListener("submit", async functi
 document.addEventListener("DOMContentLoaded", () => {
     const logoutBtn = document.getElementById("logoutBtn");
 
-    logoutBtn?.addEventListener("click", function () {
+    logoutBtn?.addEventListener("click", async function () {
+
+        await fetch("/logout", {
+            method: "POST",
+            credentials: "include"
+        });
         // Удаляем все данные пользователя
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
