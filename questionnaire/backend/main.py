@@ -3,6 +3,8 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from routers import auth, pages
 from routers.dependencies import get_db
+from routers.database import engine, Base
+from models import user_models
 from routers.redis_db import r
 import redis
 from datetime import datetime
@@ -18,14 +20,9 @@ app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR)), name="frontend"
 app.include_router(pages.router)
 app.include_router(auth.router)
 
-
-#Создание индексов при запуске
-#@app.on_event("startup")
-#def create_indexes():
-    #database.pending_users.create_index("created_at", expireAfterSeconds = 300)
-    #database.password_reset.create_index("created_at", expireAfterSeconds = 300)
-
-
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind = engine)
 
 @app.get("/connect-redis")
 def connect_redis():
