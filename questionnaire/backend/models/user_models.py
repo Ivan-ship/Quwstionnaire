@@ -37,7 +37,7 @@ class User(Base):
     password = Column(String)
     first_name = Column(String)
     last_name = Column(String)
-    created_ad = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class PendingUser(Base):
@@ -50,7 +50,7 @@ class PendingUser(Base):
     first_name = Column(String)
     last_name = Column(String)
     activation_code = Column(String)
-    created_ad = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 class ResetPassword(Base):
     __tablename__ = "reset_passwords"
@@ -58,4 +58,4 @@ class ResetPassword(Base):
     email = Column(String, index=True)
     new_password = Column(String)
     code = Column(String)
-    created_ad = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)

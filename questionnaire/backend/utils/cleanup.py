@@ -6,7 +6,7 @@ def clean_pending_users():
     db = SessionLocal()
     expire_time = datetime.utcnow() - timedelta(minutes = 5)
 
-    db.query(PendingUser).filter(PendingUser.created_ad < expire_time).delete(synchronize_session=False)
+    db.query(PendingUser).filter(PendingUser.created_at < expire_time).delete(synchronize_session=False)
 
     db.commit()
     db.close()
@@ -14,6 +14,6 @@ def clean_pending_users():
 def clean_reset_password():
     db = SessionLocal()
     expire_time = datetime.utcnow() - timedelta(minutes = 5)
-    db.query(ResetPassword).filter(ResetPassword.created_ad < expire_time).delete(synchronize_session=False)
+    db.query(ResetPassword).filter(ResetPassword.created_at < expire_time).delete(synchronize_session=False)
     db.commit()
     db.close()

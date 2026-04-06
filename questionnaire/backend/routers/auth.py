@@ -48,7 +48,7 @@ def register(user: RegisterUser, db: Session = Depends(get_db)):
         first_name = user.first_name,
         last_name = user.last_name,
         activation_code = activation_code,
-        created_ad = datetime.utcnow()
+        created_at = datetime.utcnow()
     )
     db.add(pending_user)
     db.commit()
@@ -160,7 +160,7 @@ def reset_password(user: ResetRequest, db: Session = Depends(get_db)):
         email = user.email,
         new_password = hash_password(user.new_password),
         code = reset_code,
-        created_ad = datetime.utcnow()
+        created_at = datetime.utcnow()
     )
     db.add(reset_entry)
     db.commit()
