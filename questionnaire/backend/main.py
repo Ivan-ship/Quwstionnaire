@@ -11,6 +11,7 @@ from datetime import datetime
 import asyncio
 from sqlalchemy import text
 from utils.cleanup import clean_pending_users, clean_reset_password
+from logic import create
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
@@ -22,6 +23,7 @@ app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR)), name="frontend"
 
 app.include_router(pages.router)
 app.include_router(auth.router)
+app.include_router(create.router)
 
 @app.on_event("startup")
 async def startup():

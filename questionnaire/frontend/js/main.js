@@ -263,3 +263,22 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "/"; 
     });
 });
+
+//СОЗДАНИЕ ОПРОСОВ
+document.addEventListener("DOMContentLoaded", () => {
+    const createdTest = document.getElementById("createdTest");
+
+    createdTest?.addEventListener("click", async function() {
+        const response = await fetch("/createdTest", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        if (response.ok) {
+            window.location.href = "/test";
+        } else {
+            alert("Ошибка при создании опроса");
+        }
+
+    });
+});

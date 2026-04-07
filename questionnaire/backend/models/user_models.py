@@ -32,7 +32,7 @@ class User(Base):
 
     __tablename__ = "users"
 
-    user_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     email = Column(String, unique=True, index=True)
     password = Column(String)
     first_name = Column(String)
@@ -43,7 +43,7 @@ class User(Base):
 class PendingUser(Base):
     __tablename__ = "pending_users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     email = Column(String, unique=True, index=True)
 
     password = Column(String)
@@ -54,7 +54,7 @@ class PendingUser(Base):
 
 class ResetPassword(Base):
     __tablename__ = "reset_passwords"
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     email = Column(String, index=True)
     new_password = Column(String)
     code = Column(String)

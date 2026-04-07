@@ -31,3 +31,7 @@ def password_reset():
 @router.get("/hello")
 def hello():
     return FileResponse(FRONTEND_DIR / "hello.html")
+
+@router.get("/test")
+def test():
+    return FileResponse(FRONTEND_DIR / "test.html")
