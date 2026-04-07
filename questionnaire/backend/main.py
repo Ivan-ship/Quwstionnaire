@@ -9,6 +9,7 @@ from routers.redis_db import r
 import redis
 from datetime import datetime
 import asyncio
+from sqlalchemy import text
 from utils.cleanup import clean_pending_users, clean_reset_password
 
 BASE_DIR = Path(__file__).resolve().parent

@@ -28,6 +28,7 @@ import httpx
 import jwt
 import redis
 from utils.token_utils import decode_token
+from passlib.exc import UnknownHashError
 
 router = APIRouter()
 
@@ -111,9 +112,15 @@ def login(user: LoginUser, response: Response, db: Session = Depends(get_db)):
 
     if not db_user:
         raise HTTPException(status_code=400, detail="Вы ещё не зарегистрировались!")
+    
+    if not db_user.password:
+        raise HTTPException(status_code=400, detail="Вы зарегистрированы другим способом!")
 
-    if not verify_password(user.password, db_user.password):
-        raise HTTPException(status_code=400, detail="Не верный логин или парль!")
+    try:
+        if not verify_password(user.password, db_user.password):
+            raise HTTPException(status_code=400, detail="Не верный пароль!")
+    except UnknownHashError:
+        raise HTTPException(status_code=400, detail="Вы зарегистрированы другим способом!")
     
     
 
