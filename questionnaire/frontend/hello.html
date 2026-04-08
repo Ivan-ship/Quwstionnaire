@@ -7,14 +7,63 @@
 </head>
 <body>
     <div class="container">
-        <h2>Главная страница</h2>
+        <h2>Выбирай Test+</h2>
 
-        <button id = "logoutBtn">Выйти</button>
+       
 
         <button id = "createdTest">Создать опрос</button>
         <button>Пройти опрос</button>
         
+        <div class="profile">
+            <div class="avatar" id="avatar">👤</div>
+
+            <div class="dropdown" id="dropdown">
+                <p id="userName"></p>
+                <button id="logoutBtn">Выйти</button>
+            </div>
+        </div>
     </div>
+    <style>
+        h2{
+            text-align: center;
+        }
+        .profile {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .avatar {
+        width: 50px;
+        height: 50px;
+        background-color: #4CAF50;
+        color: white;
+        border-radius: 50%; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 24px;
+        }
+
+        .dropdown {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 60px;
+        background: white;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 10px;
+        width: 150px;
+        text-align: center;
+    }
+
+    .dropdown button {
+        margin-top: 10px;
+        width: 100%;
+        }
+    </style>
 
     <script src="/frontend/js/main.js"></script>
 </body>

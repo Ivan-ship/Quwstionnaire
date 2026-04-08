@@ -62,6 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if(response.ok){
             alert("Успешный вход");
+
+            localStorage.setItem("first_name", data.first_name);
+            localStorage.setItem("last_name", data.last_name);
+
             window.location.href = "/hello"
         } else {
             alert(data.detail);
@@ -280,5 +284,24 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Ошибка при создании опроса");
         }
 
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const userName = document.getElementById("userName");
+    const avatar = document.getElementById("avatar");
+    const dropdown = document.getElementById("dropdown");
+    const firstName = localStorage.getItem("first_name");
+
+    if (firstName) {
+        userName.textContent = firstName;
+        avatar.textContent = firstName[0].toUpperCase();
+    } else {
+        userName.textContent = "Нет данных";
+        avatar.textContent = "?";
+    }
+    avatar?.addEventListener("click", () => {
+        dropdown.style.display =
+            dropdown.style.display === "block" ? "none" : "block";
     });
 });

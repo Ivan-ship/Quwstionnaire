@@ -103,7 +103,9 @@ def confirm(user: Confirm, response: Response, db: Session = Depends(get_db)):
         samesite = "lax"
     )
 
-    return {"message": "Вы успешно зарегистрировались"}
+    return {
+        "message": "Вы успешно зарегистрировались",
+        }
 
 #POST запрос входа
 @router.post("/login")
@@ -149,7 +151,11 @@ def login(user: LoginUser, response: Response, db: Session = Depends(get_db)):
     response.set_cookie("access_token", access_token, max_age = access_max_age, httponly = True)
     response.set_cookie("refresh_token", refresh_token, max_age = 60 * 60 * 24 * 30, httponly = True)
 
-    return{"message": "Добро пожаловать!"}
+    return{
+        "message": "Добро пожаловать!",
+        "first_name": db_user.first_name,
+        "last_name": db_user.last_name
+        }
 
 
 #Сброс пароля
