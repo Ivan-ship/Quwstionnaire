@@ -154,7 +154,6 @@ def login(user: LoginUser, response: Response, db: Session = Depends(get_db)):
     return{
         "message": "Добро пожаловать!",
         "first_name": db_user.first_name,
-        "last_name": db_user.last_name
         }
 
 
@@ -387,8 +386,30 @@ async def github_callback(code: str, response: Response, db: Session = Depends(g
         max_age = 30 * 60,
         samesite = "lax"
     )
-
+    
     return resp
+
+#Данные пользователя после oauth
+def get_current_user(
+    access_token: str = Cookie(get_db), 
+    db: Session = Depends(get_db)) -> User:
+    if not access_token:
+        raise HTTPException(status_code=400, detail="не залогинен")
+    
+    try:
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORIGHTM])
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Неверный токен")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Токен истёк")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Неверный токен")
+
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    return user
 
 # Выход(разлогинивание)
 @router.post("/logout")

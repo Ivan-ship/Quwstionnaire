@@ -41,7 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }else{
             alert(data.detail);
         }
+        
     });
+    
 
     // ЛОГИН
     const loginForm = document.getElementById("signon");
@@ -64,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Успешный вход");
 
             localStorage.setItem("first_name", data.first_name);
-            localStorage.setItem("last_name", data.last_name);
 
             window.location.href = "/hello"
         } else {
@@ -118,18 +119,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const data = await response.json();
 
-        if(response.ok){
-            if(localStorage.getItem("reset_email")){
-                alert("Пароль успешно изменён!");
-                localStorage.removeItem("reset_email");
-                localStorage.removeItem("reset_code");
-            } else {
-                alert("Регистрация завершена!");
-                window.location.href = "/hello";
-            }
+        if(localStorage.getItem("reset_email")){
+            alert("Пароль успешно изменён!");
+            window.location.href = "/hello";
+    
+        const email = localStorage.getItem("reset_email");
+        const password = document.getElementById("password").value;
+
+    
+        const loginResp = await fetch("/login", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email, password })
+        });
+
+        const loginData = await loginResp.json();
+
+        if(loginResp.ok){
+            localStorage.setItem("first_name", loginData.first_name);
+            localStorage.removeItem("reset_email");
+            localStorage.removeItem("reset_code");
+            window.location.href = "/hello";
         } else {
-            alert(data.detail);
+            alert("Не удалось войти автоматически: " + loginData.detail);
         }
+    }
     });
 });
 
@@ -287,19 +301,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const userName = document.getElementById("userName");
     const avatar = document.getElementById("avatar");
     const dropdown = document.getElementById("dropdown");
-    const firstName = localStorage.getItem("first_name");
 
-    if (firstName) {
-        userName.textContent = firstName;
-        avatar.textContent = firstName[0].toUpperCase();
-    } else {
+    try {
+        const response = await fetch("/me", { credentials: "include" });
+        if (response.ok) {
+            const data = await response.json();
+            const firstName = data.first_name || data.username || "Пользователь";
+
+            
+            localStorage.setItem("first_name", firstName);
+            userName.textContent = firstName;
+            avatar.textContent = firstName[0].toUpperCase();
+        } else {
+            userName.textContent = "Нет данных";
+            avatar.textContent = "?";
+        }
+    } catch (err) {
+        console.error(err);
         userName.textContent = "Нет данных";
         avatar.textContent = "?";
     }
+
     avatar?.addEventListener("click", () => {
         dropdown.style.display =
             dropdown.style.display === "block" ? "none" : "block";
