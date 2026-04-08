@@ -8,9 +8,27 @@
 <body>
     <div class="wrapper">
         <form id="test">
-            <h2>Введине заголовок</h2>
+            <h1>Создание опроса</h1>
+
+            <div class="input-box">
+                <input type="text" id="title" placeholder="Заголовок" required>
+            </div>
+
+            <div id ="answer">
+                <input type="text" placeholder="Вариант1" required>
+                <input type="text" placeholder="Вариант2" required>
+            </div>
+            <button type="button" onclick="addOption()">Добавить вариант</button>
+            <button type="button" onclick="addQuestion()">Добавить вопрос</button>
+            <button type = "submit" class = "btn">Создать опрос</button>
         </form>
     </div>
+
+    <style>
+        h1{
+            text-align: center;
+        }
+    </style>
      <script src="/frontend/js/main.js"></script>
 </body>
 </html>
