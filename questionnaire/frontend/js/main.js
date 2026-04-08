@@ -98,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let activation_code = "";
         inputs.forEach(input => activation_code += input.value);
 
-        localStorage.setItem("reset_code", activation_code);
 
         let email = localStorage.getItem("confirm_email");
         let url = "/confirm";
@@ -119,9 +118,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const data = await response.json();
 
-        if(localStorage.getItem("reset_email")){
+        if (!response.ok) {
+            alert(data.detail);
+            return;
+        }
+
+        if(url === "/reset/confirm"){
             alert("Пароль успешно изменён!");
-            window.location.href = "/hello";
     
         const email = localStorage.getItem("reset_email");
         const password = document.getElementById("password").value;
@@ -143,7 +146,13 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             alert("Не удалось войти автоматически: " + loginData.detail);
         }
+    }else{
+        alert("Регистрация успешна!");
+        localStorage.removeItem("confirm_email");
+        localStorage.removeItem("reset_code");
+        window.location.href = "/hello";
     }
+
     });
 });
 

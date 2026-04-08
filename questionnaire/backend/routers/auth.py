@@ -93,7 +93,6 @@ def confirm(user: Confirm, response: Response, db: Session = Depends(get_db)):
     #Выдача токена после регистрации
     token = generate_access_token(user_id = str(new_user.user_id), username=pending_user.email.split("@")[0])
     
-
     #Сохранение токена в файл cookie
     response.set_cookie(
         key="access_token",
@@ -103,9 +102,7 @@ def confirm(user: Confirm, response: Response, db: Session = Depends(get_db)):
         samesite = "lax"
     )
 
-    return {
-        "message": "Вы успешно зарегистрировались",
-        }
+    return {"ok": True}
 
 #POST запрос входа
 @router.post("/login")
