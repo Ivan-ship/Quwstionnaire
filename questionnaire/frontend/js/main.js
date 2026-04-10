@@ -340,3 +340,40 @@ document.addEventListener("DOMContentLoaded", async () => {
             dropdown.style.display === "block" ? "none" : "block";
     });
 });
+
+//СОЗДАНИЕ ОПРОСА
+function addOptionToQuestion(button){
+    // находим блок answers рядом с кнопкой
+    const questionDiv = button.closest(".question");
+    const answersDiv = questionDiv.querySelector(".answers");
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Новый вариант";
+
+    answersDiv.appendChild(input);
+}
+
+function addOption(){
+    const container = document.getElementById("answer")
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Новый вариант";
+    container.appendChild(input);
+}
+
+function addQuestion(){
+    const form = document.getElementById("test");
+    const div = document.createElement("div");
+    div.className = "question";
+
+    div.innerHTML = `
+        <input type="text" placeholder="Текст вопроса" class="question-text" required>
+        <div class="answers">
+            <input type="text" placeholder="Вариант 1">
+            <input type="text" placeholder="Вариант 2">
+        </div>
+        <button type="button" onclick="addOptionToQuestion(this)" class= "add_var">+ вариант</button>
+    `;
+    form.insertBefore(div, form.querySelector(".btn"));
+}

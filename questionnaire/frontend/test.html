@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/frontend/styles/style.css">
     <title>Document</title>
 </head>
 <body>
-    <div class="wrapper">
+    <div class="test__container">
         <form id="test">
             <h1>Создание опроса</h1>
 
@@ -15,20 +16,19 @@
             </div>
 
             <div id ="answer">
-                <input type="text" placeholder="Вариант1" required>
-                <input type="text" placeholder="Вариант2" required>
+                <input type="text" placeholder="Вариант 1" required>
+                <input type="text" placeholder="Вариант 2" required>
             </div>
-            <button type="button" onclick="addOption()">Добавить вариант</button>
-            <button type="button" onclick="addQuestion()">Добавить вопрос</button>
+
+            <div class="group-btn">
+                <button type="button" onclick="addOption()" class="add_var">Добавить вариант</button>
+                <button type="button" onclick="addQuestion()" class="add_ques">Добавить вопрос</button>
+            </div>
+            
             <button type = "submit" class = "btn">Создать опрос</button>
         </form>
     </div>
 
-    <style>
-        h1{
-            text-align: center;
-        }
-    </style>
      <script src="/frontend/js/main.js"></script>
 </body>
 </html>
