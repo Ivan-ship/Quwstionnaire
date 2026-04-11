@@ -1,10 +1,6 @@
 from pydantic import BaseModel
 from typing import List
 
-class CreateTest(BaseModel):
-    title: str
-    user_id: int
-
 class CreateAnswer(BaseModel):
     text: str
 
