@@ -12,7 +12,7 @@
        
 
         <button id = "createdTest" class="createdTest">Создать опрос</button>
-        <button>Пройти опрос</button>
+        <button id = "takeTest" class="takeTest">Пройти опрос</button>
         
         <div class="profile">
             <div class="avatar" id="avatar">👤</div>
@@ -70,10 +70,19 @@
         font-size: 14px;
         border: none;
     }
-    .createdTest{
+    .createdTest,
+    .takeTest{
         background-color: aqua;
         border: none;
-        border-radius: 2px;
+        border-radius: 8px;
+        height: 50px;
+        color: #000;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        font-size: 20px;
+        font-weight: 600;
+        margin-top: 6px;
     }
     </style>
 
