@@ -388,7 +388,7 @@ async def github_callback(code: str, response: Response, db: Session = Depends(g
 
 #Данные пользователя после oauth
 def get_current_user(
-    access_token: str = Cookie(get_db), 
+    access_token: str = Cookie(None), 
     db: Session = Depends(get_db)) -> User:
     if not access_token:
         raise HTTPException(status_code=400, detail="не залогинен")

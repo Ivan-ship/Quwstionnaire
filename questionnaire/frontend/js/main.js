@@ -296,12 +296,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const createdTest = document.getElementById("createdTest");
 
     createdTest?.addEventListener("click", async function() {
-        const response = await fetch("/createdTest", {
+
+        const title = prompt("Введите название опроса.")
+
+        if(!title || title.trim() === ""){
+            alert("Название обязательно!")
+            return;
+        }
+
+        const response = await fetch("/create_test", {
             method: "POST",
-            credentials: "include"
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                title: title.trim()
+            })
         });
 
         if (response.ok) {
+            const data = await response.json();
+
+            localStorage.setItem("test_id", data.test_id)
+
             window.location.href = "/test";
         } else {
             alert("Ошибка при создании опроса");
@@ -343,7 +361,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 //СОЗДАНИЕ ОПРОСА
 function addOptionToQuestion(button){
-    // находим блок answers рядом с кнопкой
     const questionDiv = button.closest(".question");
     const answersDiv = questionDiv.querySelector(".answers");
 
@@ -377,3 +394,59 @@ function addQuestion(){
     `;
     form.insertBefore(div, form.querySelector(".btn"));
 }
+
+//Отправка вопросов
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("test");
+
+    form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const test_id = localStorage.getItem("test_id");
+
+        if (!test_id) {
+            alert("Ошибка: test_id не найден");
+            return;
+        }
+
+        const questions = document.querySelectorAll(".question");
+
+        for (const q of questions) {
+            const text = q.querySelector(".question-text").value;
+
+            const answersInputs = q.querySelectorAll(".answers input");
+
+            const answers = [];
+            answersInputs.forEach(input => {
+                if (input.value.trim() !== "") {
+                    answers.push({
+                        text: input.value
+                    });
+                }
+            });
+
+            const payload = {
+                text: text,
+                test_id: Number(test_id),
+                answers: answers
+            };
+
+            const response = await fetch("/questions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                alert("Ошибка при создании вопроса");
+                return;
+            }
+        }
+
+        alert("Тест успешно сохранён!");
+        localStorage.removeItem("test_id");
+    });
+});
