@@ -11,7 +11,7 @@ from datetime import datetime
 import asyncio
 from sqlalchemy import text
 from utils.cleanup import clean_pending_users, clean_reset_password
-from logic import create
+from logic import create, take_test
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
@@ -24,6 +24,8 @@ app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR)), name="frontend"
 app.include_router(pages.router)
 app.include_router(auth.router)
 app.include_router(create.router)
+app.include_router(take_test.router)
+
 
 @app.on_event("startup")
 async def startup():
@@ -60,4 +62,3 @@ def connect_postgres():
             return{"status": "connected"}
     except Exception as ex:
         return {"status": "error", "message": str(ex)}
-

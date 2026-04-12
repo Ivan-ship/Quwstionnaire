@@ -11,3 +11,12 @@ class CreateQuestion(BaseModel):
     text: str
     test_id: int
     answers: List[CreateAnswer]
+
+
+class VoteItem(BaseModel):
+    question_id: int
+    answer_id: int
+
+class SubmitVote(BaseModel):
+    test_id: int
+    answers: List[VoteImet]

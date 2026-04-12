@@ -450,3 +450,98 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.removeItem("test_id");
     });
 });
+
+//ПРОХОЖДЕНИЕ ОПРОСОВ
+document.getElementById("takeTest")?.addEventListener("click", async () => {
+
+    const response = await fetch("/tests");
+
+    const tests = await response.json();
+
+    const container = document.getElementById("testsList");
+    container.innerHTML = "";
+
+    tests.forEach(test => {
+        const btn = document.createElement("button");
+        btn.textContent = test.title;
+
+        btn.onclick = () => {
+            localStorage.setItem("test_id", test.test_id);
+            window.location.href = "/vote";
+        };
+
+        container.appendChild(btn);
+    });
+});
+
+//ОПРОС
+document.addEventListener("DOMContentLoaded", async () => {
+
+    const test_id = localStorage.getItem("test_id");
+
+    const res = await fetch(`/tests/${test_id}`);
+    const test = await res.json();
+
+    document.getElementById("testTitle").textContent = test.title;
+
+    const container = document.getElementById("questions");
+    container.innerHTML = "";
+
+    test.questions.forEach(q => {
+
+        const div = document.createElement("div");
+        div.className = "question";
+
+        div.innerHTML = `<h3>${q.text}</h3>`;
+
+        q.answers.forEach(a => {
+            const label = document.createElement("label");
+
+            label.innerHTML = `
+                <input type="radio" name="q${q.question_id}" value="${a.answer_id}">
+                ${a.text}
+            `;
+
+            div.appendChild(label);
+        });
+
+        container.appendChild(div);
+    });
+});
+
+//ПРОХОЖДЕНИЕ ОПРОСА
+document.getElementById("submitVote")?.addEventListener("click", async () => {
+
+    const answers = document.querySelectorAll("input[type=radio]:checked");
+
+    const votes = [];
+
+    answers.forEach(a => {
+        votes.push({
+            question_id: Number(a.name.replace("q", "")),
+            answer_id: Number(a.value)
+        });
+    });
+
+    const test_id = localStorage.getItem("test_id");
+
+    const response = await fetch("/submit_vote", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+            test_id: Number(test_id),
+            answers: votes
+        })
+    });
+
+    if (response.ok) {
+        alert("Голос принят!");
+        localStorage.removeItem("test_id");
+        window.location.href = "/";
+    } else {
+        alert("Ошибка при отправке голоса");
+    }
+});

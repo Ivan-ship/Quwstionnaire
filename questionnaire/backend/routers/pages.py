@@ -5,6 +5,7 @@ from routers.auth import get_current_user
 from fastapi import Depends
 from models.user_models import User
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
 
@@ -47,3 +48,7 @@ def hello():
 @router.get("/test")
 def test():
     return FileResponse(FRONTEND_DIR / "test.html")
+
+@router.get("/vote")
+def take_vote():
+    return FileResponse(FRONTEND_DIR / "vote.html")

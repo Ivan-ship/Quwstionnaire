@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy import Column, Integer, String, DateTime
 from routers.database import Base
 from datetime import datetime
+from sqlalchemy.orm import relationship
 
 class RegisterUser(BaseModel):
     email: EmailStr
@@ -39,6 +40,10 @@ class User(Base):
     last_name = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user_answers = relationship("UserAnswer", back_populates="user")
+    user_results = relationship("UserResult", back_populates="user")
+    tests = relationship("Test", back_populates="user")
 
 class PendingUser(Base):
     __tablename__ = "pending_users"

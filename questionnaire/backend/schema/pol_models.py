@@ -1,6 +1,7 @@
 from routers.database import Base
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 
 class Test(Base):
@@ -11,7 +12,9 @@ class Test(Base):
     title = Column(String)
     user_id = Column(Integer, ForeignKey("users.user_id"))
 
+    user = relationship("User", back_populates="tests")
     questions = relationship("Question", back_populates="test")
+    user_results = relationship("UserResult", back_populates="test")
 
 class Question(Base):
     
@@ -23,6 +26,7 @@ class Question(Base):
     
     answers = relationship("Answer", back_populates="question")
     test = relationship("Test", back_populates="questions")
+    user_answers = relationship("UserAnswer", back_populates="question")
     
     
 
@@ -35,3 +39,31 @@ class Answer(Base):
     question_id = Column(Integer, ForeignKey("questions.question_id"))
     
     question = relationship("Question", back_populates="answers")
+    user_answers = relationship("UserAnswer", back_populates="answer")
+
+class UserAnswer(Base):
+
+    __tablename__ = "users_answer"
+
+    user_anser_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    question_id = Column(Integer, ForeignKey("questions.question_id"))
+    answer_id = Column(Integer, ForeignKey("answers.answer_id"))
+    
+    user = relationship("User", back_populates="user_answers")
+    question = relationship("Question", back_populates="user_answers")
+    answer = relationship("Answer", back_populates="user_answers")
+
+
+class UserResult(Base):
+
+    __tablename__ = "users_results"
+
+    test_result_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    test_id = Column(Integer, ForeignKey("tests.test_id"))
+
+    user = relationship("User", back_populates="user_results")
+    test = relationship("Test", back_populates="user_results")
