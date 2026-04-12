@@ -395,7 +395,7 @@ function addQuestion(){
     form.insertBefore(div, form.querySelector(".btn"));
 }
 
-//Отправка вопросов
+//ОТПРАВКА ВОПРОСА
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("test");
 
