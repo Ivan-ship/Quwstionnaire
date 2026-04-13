@@ -19,4 +19,30 @@ class VoteItem(BaseModel):
 
 class SubmitVote(BaseModel):
     test_id: int
-    answers: List[VoteImet]
+    answers: List[VoteItem]
+
+
+class AnswerOut(BaseModel):
+    answer_id: int
+    text: str
+    
+    class Config:
+        from_attributes = True
+
+
+class QuestionOut(BaseModel):
+    question_id: int
+    text: str
+    answer: List[AnswerOut]
+    
+    class Config:
+        from_attributes = True
+
+
+class TestOut(BaseModel):
+    test_id: int
+    title: str
+    questions: List[QuestionOut]
+    
+    class Config:
+        from_attributes = True

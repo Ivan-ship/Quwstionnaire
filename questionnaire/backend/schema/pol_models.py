@@ -45,15 +45,17 @@ class UserAnswer(Base):
 
     __tablename__ = "users_answer"
 
-    user_anser_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_answer_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.user_id"))
     question_id = Column(Integer, ForeignKey("questions.question_id"))
     answer_id = Column(Integer, ForeignKey("answers.answer_id"))
+    test_result_id = Column(Integer, ForeignKey("users_results.test_result_id"))
     
     user = relationship("User", back_populates="user_answers")
     question = relationship("Question", back_populates="user_answers")
     answer = relationship("Answer", back_populates="user_answers")
+    test_result = relationship("UserResult", back_populates="answers")
 
 
 class UserResult(Base):
@@ -61,9 +63,10 @@ class UserResult(Base):
     __tablename__ = "users_results"
 
     test_result_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.user_id"))
     test_id = Column(Integer, ForeignKey("tests.test_id"))
 
     user = relationship("User", back_populates="user_results")
     test = relationship("Test", back_populates="user_results")
+    answers = relationship("UserAnswer", back_populates="test_result")

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from pathlib import Path
 from sqlalchemy.orm import Session
 from routers.dependencies import get_db
-from schema.db_schema import CreateAnswer, CreateQuestion, CreateTest
+from schema.db_schema import CreateQuestion, CreateTest
 from schema.pol_models import Question, Answer, Test
 from routers.auth import get_current_user
 

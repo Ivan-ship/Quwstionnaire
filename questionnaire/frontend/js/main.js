@@ -540,7 +540,7 @@ document.getElementById("submitVote")?.addEventListener("click", async () => {
     if (response.ok) {
         alert("Голос принят!");
         localStorage.removeItem("test_id");
-        window.location.href = "/";
+        window.location.href = "/hello";
     } else {
         alert("Ошибка при отправке голоса");
     }

@@ -453,3 +453,25 @@ body{
     font-weight: 600;
     margin-top: 6px;
 }
+
+/*Опросы*/
+#questions {
+    max-height: 80vh;   /* ограничиваем высоту */
+    overflow-y: auto;   /* включаем вертикальный скролл */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.question {
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: white;
+}
+
+label {
+    display: block;
+    margin-top: 5px;
+}
