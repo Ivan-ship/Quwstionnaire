@@ -12,6 +12,7 @@ import asyncio
 from sqlalchemy import text
 from utils.cleanup import clean_pending_users, clean_reset_password
 from logic import create, take_test
+import uvicorn
 
 BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR.parent / "frontend"
@@ -62,3 +63,6 @@ def connect_postgres():
             return{"status": "connected"}
     except Exception as ex:
         return {"status": "error", "message": str(ex)}
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=124)
