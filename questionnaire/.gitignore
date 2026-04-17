@@ -1,3 +1,3 @@
 .env
-.requirement.txt
-Dockerfile
+./requirements.txt
+./Dockerfile
