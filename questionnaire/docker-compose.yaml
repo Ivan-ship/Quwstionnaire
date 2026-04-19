@@ -6,7 +6,7 @@ services:
     container_name: backend
 
     ports:
-      - "8000:8000"
+      - "8000:124"
 
     env_file:
       - .env
@@ -23,6 +23,7 @@ services:
 
     volumes:
       - ./backend:/app
+      - ./frontend:/app/frontend
 
 
   frontend:

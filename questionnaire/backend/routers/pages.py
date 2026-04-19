@@ -4,33 +4,42 @@ from fastapi import APIRouter
 from routers.auth import get_current_user
 from fastapi import Depends
 from models.user_models import User
+from fastapi.responses import FileResponse, JSONResponse
+import os
 
+FRONTEND_DIR = Path(os.getenv("FRONTEND_DIR", "./frontend"))
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_DIR = BASE_DIR.parent / "frontend"
+def safe_file(name: str):
+    file = FRONTEND_DIR / name
+    if not file.exists():
+        return JSONResponse(
+            status_code = 404,
+            content = {"error": f"{name} not found"}
+        )
+    return FileResponse(file)
 
 router = APIRouter()
 
 @router.get("/")
 def root():
-    return FileResponse(FRONTEND_DIR / "index.html")
+    return safe_file("index.html")
 
 
 @router.get("/register")
 def register_page():
-    return FileResponse(FRONTEND_DIR / "register.html")
+    return safe_file("register.html")
 
 @router.get("/reset")
 def reset_page():
-    return FileResponse(FRONTEND_DIR / "reset.html")
+    return safe_file("reset.html")
 
 @router.get("/email")
 def confirm_email():
-    return FileResponse(FRONTEND_DIR / "email.html")
+    return safe_file("email.html")
 
 @router.get("/password")
 def password_reset():
-    return FileResponse(FRONTEND_DIR / "password.html")
+    return safe_file("password.html")
 
 @router.get("/me")
 def get_me(current_user: User = Depends(get_current_user)):
@@ -43,12 +52,12 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 @router.get("/hello")
 def hello():
-    return FileResponse(FRONTEND_DIR / "hello.html")
+    return safe_file("hello.html")
 
 @router.get("/test")
 def test():
-    return FileResponse(FRONTEND_DIR / "test.html")
+    return safe_file("test.html")
 
 @router.get("/vote")
 def take_vote():
-    return FileResponse(FRONTEND_DIR / "vote.html")
+    return safe_file("vote.html")
