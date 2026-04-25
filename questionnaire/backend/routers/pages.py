@@ -7,7 +7,8 @@ from models.user_models import User
 from fastapi.responses import FileResponse, JSONResponse
 import os
 
-FRONTEND_DIR = Path(os.getenv("FRONTEND_DIR", "./frontend"))
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+FRONTEND_DIR = BASE_DIR / "frontend"
 
 def safe_file(name: str):
     file = FRONTEND_DIR / name

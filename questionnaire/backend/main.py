@@ -16,14 +16,17 @@ import uvicorn
 import os
 from pathlib import Path
 
-FRONTEND_DIR = Path(os.getenv("FRONTEND_DIR", "./frontend"))
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
 
 app = FastAPI()
 
-if FRONTEND_DIR:
-    app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR)), name="frontend")
-else:
-    print("Frontend Dir no found!")
+app.mount(
+    "/frontend",
+    StaticFiles(directory=str(FRONTEND_DIR)),
+    name="frontend"
+)
 
 app.include_router(pages.router)
 app.include_router(auth.router)

@@ -1,6 +1,6 @@
 from fastapi import HTTPException, Response, APIRouter, Cookie
 from fastapi.responses import RedirectResponse
-from models.user_models import User, RegisterUser, Confirm, LoginUser, ResetRequest, ResetConfirm, PendingUser, ResetPassword
+from models.user_models import User, RegisterUser, Confirm, LoginUser, ResetRequest, ResetConfirm, PendingUser, ResetPassword, Telegram
 from routers.redis_db import r
 from utils.security import hash_password, verify_password
 from utils.token_utils import (
@@ -58,8 +58,7 @@ def register(user: RegisterUser, db: Session = Depends(get_db)):
     send_email(user.email, activation_code)
     
     return {"message": "Код подтверждения отправлен!"}
-    
-    
+
 
 
 #Регистрация через подтверждение кода
@@ -407,6 +406,31 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     return user
+
+#Телеграм
+@router.post("/telegram/register")
+def register_telegram_user(data: Telegram, db: Session = Depends(get_db)):
+
+    user = db.query(User).filter(User.telegram_id == data.telegram_id).first()
+
+    if not user:
+        user = User(
+            telegram_id = data.telegram_id,
+            username = data.username,
+            first_name = data.first_name,
+            last_name = data.last_name
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        return {"status": "created"}
+    #Обновление существующего пользователя
+
+    user.username = data.username
+    db.commit()
+
+    return {"status": "exists"}
 
 # Выход(разлогинивание)
 @router.post("/logout")
