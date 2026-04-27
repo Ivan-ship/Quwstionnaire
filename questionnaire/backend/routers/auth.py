@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Response, APIRouter, Cookie
+from fastapi import HTTPException, Response, APIRouter, Cookie, Header
 from fastapi.responses import RedirectResponse
 from models.user_models import User, RegisterUser, Confirm, LoginUser, ResetRequest, ResetConfirm, PendingUser, ResetPassword, Telegram
 from routers.redis_db import r
@@ -29,9 +29,13 @@ import jwt
 import redis
 from utils.token_utils import decode_token
 from passlib.exc import UnknownHashError
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 router = APIRouter()
 
+API_KEY = os.getenv("Api_Key")
 
 @router.post("/register")
 def register(user: RegisterUser, db: Session = Depends(get_db)):
@@ -408,8 +412,16 @@ def get_current_user(
     return user
 
 #Телеграм
+
 @router.post("/telegram/register")
-def register_telegram_user(data: Telegram, db: Session = Depends(get_db)):
+def register_telegram_user(
+    data: Telegram, 
+    db: Session = Depends(get_db),
+    x_api_key: str = Header("API_KEY", alias="x-api-key")
+    ):
+
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     user = db.query(User).filter(User.telegram_id == data.telegram_id).first()
 
